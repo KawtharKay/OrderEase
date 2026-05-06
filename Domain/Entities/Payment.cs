@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities
+﻿using Domain.Enums;
+
+namespace Domain.Entities
 {
     public class Payment : BaseEntity
     {
@@ -8,9 +10,11 @@
         public Order Order { get; set; } = default!;
         public decimal AmountPaid { get; set; }
         public decimal AmountTotal { get; set; }
-        public decimal OutstandingBalance => AmountTotal - AmountPaid;
+        public decimal OutstandingBalance { get; set; }
         public DateTime PaymentDate { get; set; }
-        public string ProofOfPaymentUrl { get; set; } = default!;
+        public string PaystackReference { get; set; } = default!;
+        public PaystackStatus Status { get; set; }
+        //public string ProofOfPaymentUrl { get; set; } = default!;
         public bool IsConfirmed { get; set; }
         public DateTime? DateConfirmed { get; set; }
     }

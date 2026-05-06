@@ -3,7 +3,7 @@
     public enum NotificationType
     {
         NewOrder = 1,
-        PaymentUploaded,
+        PaymentConfirmed,
         ReturnRequested,
         OrderStatusChanged,
         ReturnApproved,
