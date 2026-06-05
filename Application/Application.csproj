@@ -13,7 +13,6 @@
   <ItemGroup>
     <Folder Include="Commands\" />
     <Folder Include="Common\DTOs\" />
-    <Folder Include="Constants\" />
     <Folder Include="Services\" />
     <Folder Include="Querries\" />
     <Folder Include="Response\" />

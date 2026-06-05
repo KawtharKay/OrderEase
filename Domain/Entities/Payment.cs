@@ -14,7 +14,6 @@ namespace Domain.Entities
         public DateTime PaymentDate { get; set; }
         public string PaystackReference { get; set; } = default!;
         public PaystackStatus Status { get; set; }
-        //public string ProofOfPaymentUrl { get; set; } = default!;
         public bool IsConfirmed { get; set; }
         public DateTime? DateConfirmed { get; set; }
     }
