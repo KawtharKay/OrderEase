@@ -19,7 +19,7 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.HasData(new User
             {
-                Id = Guid.Parse(""),
+                Id = Guid.Parse("BE31038D-70A8-4F1E-845F-111B2EC46E60"),
                 Email = "admin@gmail.com",
                 HashPassword = "",
                 CreatedBy = "admin@gmail.com",

@@ -18,12 +18,12 @@ namespace Infrastructure.Persistence.Configurations
             builder.HasData(
                 new Role
                 {
-                    Id = Guid.Parse(""),
+                    Id = Guid.Parse("6E7AF04D-5B6C-4177-A81A-DF253D35441F"),
                     Name = AppRoles.Supplier
                 },
                 new Role
                 {
-                    Id = Guid.Parse(""),
+                    Id = Guid.Parse("7E64770B-A73A-40EF-BCFE-5659C3B61EE5"),
                     Name = AppRoles.Customer
                 }
             );

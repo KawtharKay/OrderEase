@@ -23,4 +23,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+
+//var hasher = new PasswordHasher<User>();
+//var hash = hasher.HashPassword(new User(), "admin");
+//Console.WriteLine(hash);
+
+
 app.Run();
