@@ -1,6 +1,6 @@
 ﻿using Domain.Entities;
 
-namespace Application.Interfaces.Repositories
+namespace Application.Repositories
 {
     public interface IItemRepository
     {
@@ -9,6 +9,5 @@ namespace Application.Interfaces.Repositories
         Task<ICollection<Item>> GetByCategoryIdAsync(Guid categoryId);
         Task<ICollection<Item>> GetAllAsync();
         void Update(Item item);
-        void Delete(Item item);
     }
 }

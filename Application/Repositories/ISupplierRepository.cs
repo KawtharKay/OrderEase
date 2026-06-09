@@ -1,6 +1,6 @@
 ﻿using Domain.Entities;
 
-namespace Application.Interfaces.Repositories
+namespace Application.Repositories
 {
     public interface ISupplierRepository
     {

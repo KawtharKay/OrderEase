@@ -1,6 +1,6 @@
 ﻿using Domain.Entities;
 
-namespace Application.Interfaces.Repositories
+namespace Application.Repositories
 {
     public interface ICategoryRepository
     {
@@ -9,6 +9,5 @@ namespace Application.Interfaces.Repositories
         Task<Category?> GetAsync(string name);
         Task<ICollection<Category>> GetAllAsync();
         void Update(Category category);
-        void Delete(Category category);
     }
 }
