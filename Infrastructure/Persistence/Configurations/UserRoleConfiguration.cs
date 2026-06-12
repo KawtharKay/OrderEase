@@ -14,6 +14,7 @@ namespace Infrastructure.Persistence.Configurations
                 .WithMany(a => a.UserRoles)
                 .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
             builder.HasOne(a => a.Role)
                 .WithMany(a => a.UserRoles)
                 .HasForeignKey(a => a.RoleId)

@@ -9,6 +9,8 @@ namespace Application.Repositories
         Task<User?> GetAsync(Guid id);
         Task<User?> GetAsync(string email);
         Task<ICollection<User>> GetAllAsync();
+        Task AssignRoleAsync(UserRole userRole);
         void Update(User user);
+        Task<User?> GetByVerificationTokenAsync(string token);
     }
 }

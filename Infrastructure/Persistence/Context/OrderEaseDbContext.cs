@@ -5,7 +5,7 @@ namespace Infrastructure.Persistence.Context
 {
     public class OrderEaseDbContext : DbContext
     {
-        public OrderEaseDbContext(DbContextOptions options) : base(options)
+        public OrderEaseDbContext(DbContextOptions<OrderEaseDbContext> options) : base(options)
         { }
 
         public DbSet<Category> Categories { get; set; }

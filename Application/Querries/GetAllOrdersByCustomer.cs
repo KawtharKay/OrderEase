@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Application.Commands
+namespace Application.Querries
 {
-    internal class RegisterUser
+    internal class GetAllOrdersByCustomer
     {
     }
 }
