@@ -11,13 +11,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Commands\" />
-    <Folder Include="Common\DTOs\" />
-    <Folder Include="Constants\" />
-    <Folder Include="Services\" />
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="Mapster" Version="10.0.7" />
+    <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Querries\" />
-    <Folder Include="Response\" />
-    <Folder Include="Repositories\" />
   </ItemGroup>
 
 </Project>
