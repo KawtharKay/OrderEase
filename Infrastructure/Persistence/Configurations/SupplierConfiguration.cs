@@ -20,24 +20,16 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.Property(x => x.PhoneNumber)
                 .IsRequired()
-                .HasMaxLength(20);
+                .HasMaxLength(14);
 
             builder.Property(x => x.Address)
                 .IsRequired()
-                .HasMaxLength(300);
+                .HasMaxLength(80);
 
             builder.HasOne(x => x.User)
                 .WithOne()
                 .HasForeignKey<Supplier>(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(x => x.Orders)
-                .WithOne()
-                .OnDelete(DeleteBehavior.NoAction);
-
-            builder.HasMany(x => x.ReturnRequests)
-                .WithOne()
-                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

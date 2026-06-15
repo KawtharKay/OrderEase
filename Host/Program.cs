@@ -16,6 +16,7 @@ builder.Services.AddRepositories();
 builder.Services.AddApplicationServices();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMediatRWithBehaviors();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // Configure EmailSettings and register EmailService
 builder.Services.Configure<Application.Common.Settings.EmailSettings>(
@@ -24,10 +25,6 @@ builder.Services.Configure<Application.Common.Settings.EmailSettings>(
 // Bind AppSettings
 builder.Services.Configure<Application.Common.Settings.AppSettings>(
     builder.Configuration.GetSection("AppSettings")
-);
-
-builder.Services.Configure<JwtSettings>(
-    builder.Configuration.GetSection("JwtSettings")
 );
 
 builder.Services.AddSwaggerGen(options =>
@@ -60,11 +57,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
 
 app.UseHttpsRedirection();
 

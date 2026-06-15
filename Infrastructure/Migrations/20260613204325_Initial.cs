@@ -52,6 +52,12 @@ namespace Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(70)", maxLength: 70, nullable: false),
                     HashPassword = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Salt = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    IsVerified = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    VerificationToken = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    VerificationTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PasswordResetToken = table.Column<string>(type: "nvarchar(6)", maxLength: 6, nullable: true),
+                    ResetTokenExpiry = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -99,7 +105,7 @@ namespace Infrastructure.Migrations
                     Email = table.Column<string>(type: "nvarchar(70)", maxLength: 70, nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Address = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    PaymentStatus = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -151,8 +157,8 @@ namespace Infrastructure.Migrations
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(70)", maxLength: 70, nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(14)", maxLength: 14, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -203,7 +209,6 @@ namespace Infrastructure.Migrations
                     OrderStatus = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -216,11 +221,6 @@ namespace Infrastructure.Migrations
                         name: "FK_Orders_Customers_CustomerId",
                         column: x => x.CustomerId,
                         principalTable: "Customers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Orders_Suppliers_SupplierId",
-                        column: x => x.SupplierId,
-                        principalTable: "Suppliers",
                         principalColumn: "Id");
                 });
 
@@ -324,7 +324,6 @@ namespace Infrastructure.Migrations
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
-                    SupplierId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DateUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -348,11 +347,6 @@ namespace Infrastructure.Migrations
                         name: "FK_ReturnRequests_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_ReturnRequests_Suppliers_SupplierId",
-                        column: x => x.SupplierId,
-                        principalTable: "Suppliers",
                         principalColumn: "Id");
                 });
 
@@ -397,8 +391,8 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "CreatedBy", "DateCreated", "DateUpdated", "Email", "HashPassword", "IsDeleted" },
-                values: new object[] { new Guid("be31038d-70a8-4f1e-845f-111b2ec46e60"), "admin@gmail.com", new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "", false });
+                columns: new[] { "Id", "CreatedBy", "DateCreated", "DateUpdated", "Email", "HashPassword", "IsDeleted", "PasswordResetToken", "ResetTokenExpiry", "Salt", "VerificationToken", "VerificationTokenExpiry" },
+                values: new object[] { new Guid("be31038d-70a8-4f1e-845f-111b2ec46e60"), "admin@gmail.com", new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "admin@gmail.com", "", false, null, null, "", null, null });
 
             migrationBuilder.InsertData(
                 table: "UserRoles",
@@ -449,11 +443,6 @@ namespace Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_SupplierId",
-                table: "Orders",
-                column: "SupplierId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Payments_CustomerId",
                 table: "Payments",
                 column: "CustomerId");
@@ -489,11 +478,6 @@ namespace Infrastructure.Migrations
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ReturnRequests_SupplierId",
-                table: "ReturnRequests",
-                column: "SupplierId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Suppliers_UserId",
                 table: "Suppliers",
                 column: "UserId",
@@ -524,6 +508,9 @@ namespace Infrastructure.Migrations
                 name: "ReturnRequestItems");
 
             migrationBuilder.DropTable(
+                name: "Suppliers");
+
+            migrationBuilder.DropTable(
                 name: "UserRoles");
 
             migrationBuilder.DropTable(
@@ -543,9 +530,6 @@ namespace Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Customers");
-
-            migrationBuilder.DropTable(
-                name: "Suppliers");
 
             migrationBuilder.DropTable(
                 name: "Users");

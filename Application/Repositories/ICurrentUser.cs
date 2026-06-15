@@ -1,7 +1,9 @@
-﻿namespace Application.Repositories
+﻿namespace Application.Services
 {
     public interface ICurrentUser
     {
-        Guid GetCurrentUser();
+        Guid GetCurrentUserId();
+        string GetCurrentUserEmail();
+        bool IsInRole(string role);
     }
 }

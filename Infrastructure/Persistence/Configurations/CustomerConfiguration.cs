@@ -27,7 +27,7 @@ namespace Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(300);
 
-            builder.Property(x => x.Status)
+            builder.Property(x => x.PaymentStatus)
                 .IsRequired()
                 .HasDefaultValue(PaymentStatus.Pending);
 

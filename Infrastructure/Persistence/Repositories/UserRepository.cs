@@ -23,7 +23,7 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task<User?> GetAsync(string email)
         {
-            return await context.Users.FirstOrDefaultAsync(x => x.Email == email);
+            return await context.Users.Include(x => x.UserRoles).ThenInclude(x => x.Role).FirstOrDefaultAsync(x => x.Email == email);
         }
 
         public async Task<ICollection<User>> GetAllAsync()

@@ -10,7 +10,7 @@ namespace Application.Commands
 {
     public class RegisterSupplier
     {
-        public record RegisterSupplierCommand(Guid UserId, string Name, string Email, string PhoneNumber, string Address) : IRequest<Result<RegisterSupplierResponse>>;
+        public record RegisterSupplierCommand(Guid UserId, string Name, string PhoneNumber, string Address) : IRequest<Result<RegisterSupplierResponse>>;
 
         public class RegisterSupplierValidator : AbstractValidator<RegisterSupplierCommand>
         {
@@ -21,14 +21,6 @@ namespace Application.Commands
                     .WithMessage("Name is required")
                     .MaximumLength(100)
                     .WithMessage("Name should not exceed 100 characters");
-
-                RuleFor(x => x.Email)
-                    .NotEmpty()
-                    .WithMessage("Email is required")
-                    .EmailAddress()
-                    .WithMessage("Enter a valid email address")
-                    .MaximumLength(70)
-                    .WithMessage("Email should not exceed 70 characters");
 
                 RuleFor(x => x.PhoneNumber)
                     .NotEmpty()
@@ -69,10 +61,10 @@ namespace Application.Commands
                 {
                     UserId = request.UserId,
                     Name = request.Name,
-                    Email = request.Email,
+                    Email = user.Email,
                     PhoneNumber = request.PhoneNumber,
                     Address = request.Address,
-                    CreatedBy = request.Email,
+                    CreatedBy = user.Email,
                     DateCreated = DateTime.UtcNow
                 };
                 await supplierRepository.AddAsync(supplier);

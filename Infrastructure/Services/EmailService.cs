@@ -10,11 +10,12 @@ namespace Infrastructure.Services
     {
         public async Task SendVerificationEmailAsync(string toEmail, string verificationToken)
         {
+            var baseUrl = configuration["AppSettings:BaseUrl"];
             var subject = "Verify your OrderEase account";
             var body = $@"
                 <h2>Welcome to OrderEase</h2>
                 <p>Thank you for registering. Please verify your email address by clicking the link below:</p>
-                <a href='{configuration["https://localhost:7185/api/auth"]}/verify-email?token={verificationToken}'>
+                <a href='{baseUrl}/verify-email?token={verificationToken}'>
                     Verify Email Address
                 </a>
                 <p>This link expires in 24 hours.</p>
@@ -48,7 +49,7 @@ namespace Infrastructure.Services
             await smtp.ConnectAsync(
                 configuration["EmailSettings:Host"],
                 int.Parse(configuration["EmailSettings:Port"]!),
-                SecureSocketOptions.SslOnConnect);
+                SecureSocketOptions.StartTls);
             await smtp.AuthenticateAsync(
                 configuration["EmailSettings:UserName"],
                 configuration["EmailSettings:Password"]);

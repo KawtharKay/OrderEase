@@ -32,16 +32,6 @@ namespace Infrastructure.Persistence.Configurations
                 .HasMaxLength(6);
             builder.Property(a => a.ResetTokenExpiry)
                 .IsRequired(false);
-
-            builder.HasData(new User
-            {
-                Id = Guid.Parse("BE31038D-70A8-4F1E-845F-111B2EC46E60"),
-                Email = "admin@gmail.com",
-                HashPassword = "",
-                Salt = "",
-                CreatedBy = "admin@gmail.com",
-                DateCreated = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-            });
         }
     }
 }

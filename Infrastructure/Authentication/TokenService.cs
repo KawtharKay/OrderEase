@@ -26,8 +26,8 @@ namespace Infrastructure.Authentication
 
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, response.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, response.Email),
+                new(ClaimTypes.NameIdentifier, response.Id.ToString()),
+                new(ClaimTypes.Email, response.Email),
             };
 
             foreach (var role in response.Roles)
