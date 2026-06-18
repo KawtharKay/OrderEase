@@ -13,7 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMediatRWithBehaviors();
 builder.Services.AddJwtAuthentication(builder.Configuration);

@@ -16,7 +16,7 @@ using System.Text;
 
 namespace Host.Extensions
 {
-    public static class ServiceColectionExtension
+    public static class ServiceCollectionExtension
     {
         public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
@@ -24,10 +24,12 @@ namespace Host.Extensions
             return services;
         }
 
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
             services.AddScoped<ICurrentUser, CurrentUser>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IImageUploadService, ImageUploadService>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<ITokenService, TokenService>();
 
