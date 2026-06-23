@@ -30,6 +30,9 @@ namespace Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .HasDefaultValue(true);
 
+            builder.Property(x => x.RowVersion)
+            .IsRowVersion();
+
             builder.HasMany(x => x.OrderItems)
                 .WithOne(x => x.Item)
                 .HasForeignKey(x => x.ItemId)

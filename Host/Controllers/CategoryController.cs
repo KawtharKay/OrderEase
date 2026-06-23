@@ -23,9 +23,9 @@ namespace Host.Controllers
 
         [HttpPatch("update-category/{id}")]
         [Authorize(Roles = AppRoles.Supplier)]
-        public async Task<IActionResult> UpdateCategory(Guid id,[FromBody]string name)
+        public async Task<IActionResult> UpdateCategory(Guid id,[FromBody] UpdateCategoryCommand command)
         {
-            var response = await mediator.Send(new UpdateCategoryCommand(id, name));
+            var response = await mediator.Send(command with { Id = id});
             return Ok(response);
         }
 

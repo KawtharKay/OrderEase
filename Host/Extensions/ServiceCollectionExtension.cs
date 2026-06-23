@@ -29,9 +29,12 @@ namespace Host.Extensions
             services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
             services.AddScoped<ICurrentUser, CurrentUser>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IImageUploadService, ImageUploadService>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddHttpClient<IPaystackService, PaystackService>();
+            services.AddSignalR();
 
             return services;
         }

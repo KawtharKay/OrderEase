@@ -56,5 +56,10 @@ namespace Infrastructure.Services
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
+
+        public async Task SendGenericEmailAsync(string toEmail, string subject, string body)
+        {
+            await SendEmailAsync(toEmail, subject, body);
+        }
     }
 }

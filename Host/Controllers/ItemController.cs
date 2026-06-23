@@ -24,9 +24,9 @@ namespace Host.Controllers
 
         [HttpPatch("update-item/{id}")]
         [Authorize(Roles = AppRoles.Supplier)]
-        public async Task<IActionResult> UpateItem([FromBody] Guid id, string title, string imageUrl, decimal price, int quantity)
+        public async Task<IActionResult> UpateItem(Guid id, [FromBody] UpdateItemCommand command)
         {
-            var response = await mediator.Send(new UpdateItemCommand(id, title, imageUrl, price, quantity));
+            var response = await mediator.Send(command with { Id = id});
             return Ok(response);
         }
 
