@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Application.Constants;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static Application.Commands.InitiatePayment;
@@ -15,7 +16,7 @@ namespace Host.Controllers
     public class PaymentsController(IMediator mediator) : ControllerBase
     {
         [HttpPost("initiate")]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = AppRoles.Customer)]
         public async Task<IActionResult> Initiate([FromBody] InitiatePaymentCommand command)
         {
             var response = await mediator.Send(command);
@@ -57,7 +58,7 @@ namespace Host.Controllers
         }
 
         [HttpGet("customer/{customerId}/history")]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = AppRoles.Customer)]
         public async Task<IActionResult> GetHistory(Guid customerId)
         {
             var response = await mediator.Send(new GetPaymentHistoryByCustomerQuery(customerId));
@@ -65,7 +66,7 @@ namespace Host.Controllers
         }
 
         [HttpGet("balances")]
-        [Authorize(Roles = "Supplier")]
+        [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> GetAllBalances()
         {
             var response = await mediator.Send(new GetAllCustomerBalancesQuery());
@@ -80,7 +81,6 @@ namespace Host.Controllers
         }
 
         [HttpGet("customer/{customerId}/orders-summary")]
-        [Authorize(Roles = "Supplier,Customer")]
         public async Task<IActionResult> GetCustomerOrdersWithPayments(Guid customerId)
         {
             var response = await mediator.Send(new GetCustomerOrdersWithPaymentsQuery(customerId));

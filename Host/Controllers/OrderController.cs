@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Application.Constants;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static Application.Commands.CreateOrder;
@@ -15,7 +16,7 @@ namespace Host.Controllers
     public class OrdersController(IMediator mediator) : ControllerBase
     {
         [HttpPost]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = AppRoles.Customer)]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand command)
         {
             var response = await mediator.Send(command);
@@ -23,7 +24,7 @@ namespace Host.Controllers
         }
 
         [HttpPatch("{id}/status")]
-        [Authorize(Roles = "Supplier")]
+        [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] UpdateOrderStatusCommand command)
         {
             var response = await mediator.Send(command with { OrderId = id });
@@ -45,7 +46,7 @@ namespace Host.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Supplier")]
+        [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> GetAllOrders()
         {
             var response = await mediator.Send(new GetAllOrdersQuery());

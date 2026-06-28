@@ -39,7 +39,7 @@ namespace Application.Commands
                     var customer = await customerRepository.GetAsync(request.CustomerId);
                     if (customer == null) return Result<InitiatePaymentResponse>.Failure("Customer not found");
 
-                    var reference = $"PSK-{Guid.NewGuid().ToString("N")[..12]}";
+                    var reference = $"ORDP-{Guid.NewGuid().ToString("N")[..12]}";
 
                     var paystackResponse = await paystackService.InitializeTransactionAsync(customer.Email, order.TotalPrice, reference);
 

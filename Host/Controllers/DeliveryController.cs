@@ -1,4 +1,5 @@
-﻿using Domain.Enums;
+﻿using Application.Constants;
+using Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ namespace Host.Controllers
     public class DeliveryController(IMediator mediator) : ControllerBase
     {
         [HttpPost("create-delivery")]
-        [Authorize(Roles = "Supplier")]
+        [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> CreateDelivery([FromBody] CreateDeliveryCommand command)
         {
             var response = await mediator.Send(command);
@@ -22,7 +23,7 @@ namespace Host.Controllers
         }
 
         [HttpPatch("{orderId}")]
-        [Authorize(Roles = "Supplier")]
+        [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> UpdateDelivery(Guid orderId, [FromBody] UpdateDeliveryCommand command)
         {
             var response = await mediator.Send(command with { OrderId = orderId });

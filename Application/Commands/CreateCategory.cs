@@ -3,7 +3,6 @@ using Application.Repositories;
 using Domain.Entities;
 using FluentValidation;
 using MediatR;
-using static Application.Commands.UpdateCategory;
 
 namespace Application.Commands
 {
