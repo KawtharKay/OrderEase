@@ -55,6 +55,8 @@ namespace Host.Extensions
             services.AddScoped<IReturnRequestRepository, ReturnRequestRepository>();
             services.AddScoped<IReturnRequestItemRepository, ReturnRequestItemRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IWalletRepository, WalletRepository>();
+            services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
 
             return services;
         }

@@ -43,7 +43,7 @@ namespace Application.Commands
         }
 
         public class CreateOrderHandler(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, ICustomerRepository customerRepository, IItemRepository itemRepository,
-          ISupplierRepository supplierRepository, INotificationService notificationService, IEmailService emailService, ILogger<CreateOrderHandler> logger, IUnitOfWork unitOfWork) : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponse>>
+          ISupplierRepository supplierRepository, IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository, INotificationService notificationService, IEmailService emailService, ILogger<CreateOrderHandler> logger, IUnitOfWork unitOfWork) : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponse>>
         {
             public async Task<Result<CreateOrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
             {
@@ -83,6 +83,18 @@ namespace Application.Commands
                         itemRepository.Update(item);
                     }
 
+                    var wallet = await walletRepository.GetByCustomerAsync(request.CustomerId);
+                    decimal walletAmountUsed = 0;
+
+                    if (wallet != null && wallet.Balance > 0)
+                    {
+                        walletAmountUsed = Math.Min(wallet.Balance, totalPrice);
+                        wallet.Balance -= walletAmountUsed;
+                        walletRepository.Update(wallet);
+                    }
+
+                    var amountOwed = totalPrice - walletAmountUsed;
+
                     var orderNumber = $"ORD/{DateTime.UtcNow:yyyyMMddHHmmss}{Random.Shared.Next(0000, 9999)}";
 
                     var order = new Order
@@ -104,6 +116,22 @@ namespace Application.Commands
                     }
 
                     await orderItemRepository.AddRangeAsync(orderItemsToCreate);
+
+                    if (walletAmountUsed > 0)
+                    {
+                        var walletTransaction = new WalletTransaction
+                        {
+                            WalletId = wallet!.Id,
+                            OrderId = order.Id,
+                            Amount = walletAmountUsed,
+                            Type = WalletTransactionType.Debit,
+                            Status = PaystackStatus.Successful,
+                            Description = $"Applied to order {order.OrderNumber}",
+                            DateCreated = DateTime.UtcNow
+                        };
+                        await walletTransactionRepository.AddAsync(walletTransaction);
+                    }
+
                     await unitOfWork.SaveAsync();
 
                     var supplier = await supplierRepository.GetFirstAsync();
@@ -124,6 +152,10 @@ namespace Application.Commands
                             logger.LogWarning(ex, "Failed to send new order email notification to supplier {SupplierEmail}", supplier.Email);
                         }
                     }
+
+                    var message = walletAmountUsed > 0
+                        ? $"Order placed. ₦{walletAmountUsed:N2} was deducted from your wallet. Remaining balance to pay: ₦{amountOwed:N2}"
+                        : "Order placed successfully";
 
                     return Result<CreateOrderResponse>.Success(new CreateOrderResponse(order.Id, order.OrderNumber, order.TotalPrice), "Order placed successfully");
                 }
