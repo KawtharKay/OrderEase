@@ -14,17 +14,17 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task<Category?> GetAsync(Guid id)
         {
-            return await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
+            return await context.Categories.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         }
 
         public async Task<Category?> GetAsync(string name)
         {
-            return await context.Categories.FirstOrDefaultAsync(x => x.Name == name );
+            return await context.Categories.FirstOrDefaultAsync(x => x.Name == name && !x.IsDeleted);
         }
 
         public async Task<ICollection<Category>> GetAllAsync()
         {
-            return await context.Categories.Include(x => x.Items).ToListAsync();
+            return await context.Categories.ToListAsync();
         }
 
         public void Update(Category category)

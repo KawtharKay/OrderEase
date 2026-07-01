@@ -1,6 +1,7 @@
 using Application.Common.Settings;
 using Domain.Entities;
 using Host.Extensions;
+using Infrastructure.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi;
 
@@ -13,7 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMediatRWithBehaviors();
 builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -73,6 +74,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "OrderEase API v1");
     });
 }
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 
 //var hasher = new PasswordHasher<User>();

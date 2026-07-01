@@ -5,6 +5,7 @@ using Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Commands
 {
@@ -32,7 +33,8 @@ namespace Application.Commands
             }
         }
 
-        public class CreateUserHandler(IUserRepository userRepository, IPasswordHasher<User> passwordHasher, IEmailService emailService, IUnitOfWork unitOfWork) : IRequestHandler<CreateUserCommand, Result<CreateUserResponse>>
+        public class CreateUserHandler(IUserRepository userRepository, IPasswordHasher<User> passwordHasher, IEmailService emailService, ILogger<CreateUserHandler> logger, IUnitOfWork unitOfWork) 
+            : IRequestHandler<CreateUserCommand, Result<CreateUserResponse>>
         {
             public async Task<Result<CreateUserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
             {
@@ -63,8 +65,9 @@ namespace Application.Commands
                     await emailService.SendVerificationEmailAsync(request.Email, verificationToken);
                 }
                 
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, "Failed to send verification email to {Email}", request.Email);
                     return Result<CreateUserResponse>.Success(new CreateUserResponse(user.Id), "Account created but verification email could not be sent. Please use the resend verification option");
                 }
 

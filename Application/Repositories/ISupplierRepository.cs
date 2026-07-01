@@ -7,6 +7,7 @@ namespace Application.Repositories
         Task AddAsync(Supplier supplier);
         Task<Supplier?> GetAsync(Guid id);
         Task<Supplier?> GetByUserIdAsync(Guid userId);
+        Task<Supplier?> GetFirstAsync();
         void Update(Supplier supplier);
     }
 }
