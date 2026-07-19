@@ -157,7 +157,7 @@ namespace Application.Commands
                         ? $"Order placed. ₦{walletAmountUsed:N2} was deducted from your wallet. Remaining balance to pay: ₦{amountOwed:N2}"
                         : "Order placed successfully";
 
-                    return Result<CreateOrderResponse>.Success(new CreateOrderResponse(order.Id, order.OrderNumber, order.TotalPrice), "Order placed successfully");
+                    return Result<CreateOrderResponse>.Success(new CreateOrderResponse(order.Id, order.OrderNumber, order.TotalPrice, walletAmountUsed, amountOwed), message);
                 }
 
                 catch (DbUpdateConcurrencyException)
@@ -174,6 +174,6 @@ namespace Application.Commands
         }
 
         public record OrderItemDto(Guid ItemId, int Quantity);
-        public record CreateOrderResponse(Guid Id, string OrderNumber, decimal TotalPrice);
+        public record CreateOrderResponse(Guid Id, string OrderNumber, decimal TotalPrice, decimal WalletAmountUsed, decimal AmountOwed);
     }
 }

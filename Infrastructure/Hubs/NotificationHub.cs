@@ -1,17 +1,13 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-
-namespace Infrastructure.Hubs
+public class NotificationHub : Hub
 {
-    public class NotificationHub : Hub
+    public async Task JoinUserGroup(string userId)
     {
-        public async Task JoinUserGroup(string userId)
-        {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
-        }
+        await Groups.AddToGroupAsync(Context.ConnectionId, userId);
+    }
 
-        public async Task LeaveUserGroup(string userId)
-        {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
-        }
+    public async Task LeaveUserGroup(string userId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, userId);
     }
 }

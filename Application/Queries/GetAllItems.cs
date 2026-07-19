@@ -25,6 +25,6 @@ namespace Application.Queries
             }
         }
 
-        public record GetAllItemsResponse(Guid Id, Guid CategoryId, string Title, string ImageUrl, decimal Price, int Quantity);
+        public record GetAllItemsResponse(Guid Id, Guid CategoryId, string Title, string ImageUrl, decimal Price, int Quantity, bool IsAvailable);
     }
 }

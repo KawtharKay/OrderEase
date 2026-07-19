@@ -1,4 +1,6 @@
 ﻿using Application.Constants;
+using Application.Repositories;
+using Application.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +15,22 @@ namespace Host.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class PaymentsController(IMediator mediator) : ControllerBase
+    public class PaymentsController(IMediator mediator, ICurrentUser currentUser, ICustomerRepository customerRepository) : ControllerBase
     {
+        private async Task<Guid?> ResolveCustomerIdAsync()
+        {
+            var customer = await customerRepository.GetByUserIdAsync(currentUser.GetCurrentUserId());
+            return customer?.Id;
+        }
+
         [HttpPost("initiate")]
         [Authorize(Roles = AppRoles.Customer)]
         public async Task<IActionResult> Initiate([FromBody] InitiatePaymentCommand command)
         {
-            var response = await mediator.Send(command);
+            var customerId = await ResolveCustomerIdAsync();
+            if (customerId is null) return BadRequest("Customer profile not found for this account");
+
+            var response = await mediator.Send(command with { CustomerId = customerId.Value });
             return Ok(response);
         }
 
@@ -57,11 +68,14 @@ namespace Host.Controllers
             return Ok();
         }
 
-        [HttpGet("customer/{customerId}/history")]
+        [HttpGet("history")]
         [Authorize(Roles = AppRoles.Customer)]
-        public async Task<IActionResult> GetHistory(Guid customerId)
+        public async Task<IActionResult> GetHistory()
         {
-            var response = await mediator.Send(new GetPaymentHistoryByCustomerQuery(customerId));
+            var customerId = await ResolveCustomerIdAsync();
+            if (customerId is null) return BadRequest("Customer profile not found for this account");
+
+            var response = await mediator.Send(new GetPaymentHistoryByCustomerQuery(customerId.Value));
             return Ok(response);
         }
 
@@ -74,14 +88,27 @@ namespace Host.Controllers
         }
 
         [HttpGet("order/{orderId}")]
+        [Authorize]
         public async Task<IActionResult> GetByOrder(Guid orderId)
         {
             var response = await mediator.Send(new GetPaymentByOrderQuery(orderId));
             return Ok(response);
         }
 
+        [HttpGet("orders-summary")]
+        [Authorize(Roles = AppRoles.Customer)]
+        public async Task<IActionResult> GetCustomerOrdersWithPayments()
+        {
+            var customerId = await ResolveCustomerIdAsync();
+            if (customerId is null) return BadRequest("Customer profile not found for this account");
+
+            var response = await mediator.Send(new GetCustomerOrdersWithPaymentsQuery(customerId.Value));
+            return Ok(response);
+        }
+
         [HttpGet("customer/{customerId}/orders-summary")]
-        public async Task<IActionResult> GetCustomerOrdersWithPayments(Guid customerId)
+        [Authorize(Roles = AppRoles.Supplier)]
+        public async Task<IActionResult> GetCustomerOrdersWithPaymentsForSupplier(Guid customerId)
         {
             var response = await mediator.Send(new GetCustomerOrdersWithPaymentsQuery(customerId));
             return Ok(response);

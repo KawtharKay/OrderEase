@@ -28,6 +28,6 @@ namespace Application.Queries
             }
 
         }
-        public record GetItemsByCategoryResponse(Guid Id, string Title, string ImageUrl, decimal Price, int Quantity);
+        public record GetItemsByCategoryResponse(Guid Id, string Title, string ImageUrl, decimal Price, int Quantity, bool IsAvailable);
     }
 }

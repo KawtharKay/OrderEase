@@ -27,6 +27,7 @@ namespace Host.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+            services.Configure<PaystackSettings>(configuration.GetSection("PaystackSettings"));
             services.AddScoped<ICurrentUser, CurrentUser>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<INotificationService, NotificationService>();

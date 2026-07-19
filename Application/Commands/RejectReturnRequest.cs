@@ -40,6 +40,7 @@ namespace Application.Commands
                     if (returnRequest.Status != ReturnRequestStatus.Pending) return Result<string>.Failure("This return request has already been processed");
 
                     returnRequest.Status = ReturnRequestStatus.Rejected;
+                    returnRequest.RejectionReason = request.RejectionReason;
                     returnRequestRepository.Update(returnRequest);
                     await unitOfWork.SaveAsync();
 

@@ -15,7 +15,7 @@ namespace Host.Controllers
     public class DeliveryController(IMediator mediator) : ControllerBase
     {
         [HttpPost("create-delivery")]
-        [Authorize(Roles = AppRoles.Supplier)]
+        //[Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> CreateDelivery([FromBody] CreateDeliveryCommand command)
         {
             var response = await mediator.Send(command);

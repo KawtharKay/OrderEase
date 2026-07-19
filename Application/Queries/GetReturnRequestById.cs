@@ -1,7 +1,6 @@
 ﻿using Application.Common.Dtos;
 using Application.Repositories;
 using FluentValidation;
-using Mapster;
 using MediatR;
 
 namespace Application.Queries
@@ -29,7 +28,25 @@ namespace Application.Queries
                     var returnRequest = await returnRequestRepository.GetAsync(request.Id);
                     if (returnRequest is null) return Result<GetReturnRequestByIdResponse>.Failure("Return request not found");
 
-                    return Result<GetReturnRequestByIdResponse>.Success(returnRequest.Adapt<GetReturnRequestByIdResponse>(), "Return request retrieved successfully");
+                    var response = new GetReturnRequestByIdResponse(
+                        returnRequest.Id,
+                        returnRequest.Order.OrderNumber,
+                        returnRequest.Category.Name,
+                        returnRequest.Reason,
+                        returnRequest.Status.ToString(),
+                        returnRequest.RefundAmount,
+                        returnRequest.WalletCreditAmount,
+                        returnRequest.DebtReductionAmount,
+                        returnRequest.RejectionReason,
+                        returnRequest.ReturnRequestItems.Select(x => new ReturnRequestItemResponse(
+                            x.ItemId,
+                            x.Item.Title,
+                            x.Quantity,
+                            x.UnitPrice,
+                            x.Quantity * x.UnitPrice)).ToList());
+
+                    return Result<GetReturnRequestByIdResponse>.Success(
+                        response, "Return request retrieved successfully");
                 }
                 catch (Exception ex)
                 {
@@ -38,8 +55,10 @@ namespace Application.Queries
             }
         }
 
-        public record ReturnRequestItemResponse(Guid ItemId, string Title, int Quantity);
+        public record ReturnRequestItemResponse(Guid ItemId, string Title, int Quantity, decimal UnitPrice, decimal SubTotal);
 
-        public record GetReturnRequestByIdResponse(Guid Id, Guid OrderId, Guid CategoryId, string Reason, string Status, List<ReturnRequestItemResponse> ReturnRequestItems);
+        public record GetReturnRequestByIdResponse(Guid Id, string OrderNumber, string CategoryName, string Reason, string Status,
+            decimal RefundAmount, decimal WalletCreditAmount, decimal DebtReductionAmount, string? RejectionReason,
+            ICollection<ReturnRequestItemResponse> ReturnRequestItems);
     }
 }

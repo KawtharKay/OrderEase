@@ -37,6 +37,6 @@ namespace Application.Queries
             }
         }
 
-        public record GetReturnRequestsByCustomerResponse(Guid Id, Guid OrderId, string Reason, string Status, DateTime DateCreated);
+        public record GetReturnRequestsByCustomerResponse(Guid Id, Guid OrderId, string OrderNo, string Reason, string Status, DateTime DateCreated);
     }
 }

@@ -9,24 +9,33 @@ namespace Application.Queries
     {
         public record GetAllCustomerBalancesQuery() : IRequest<Result<ICollection<CustomerBalanceItem>>>;
 
-        public class GetAllCustomerBalancesHandler(IPaymentRepository paymentRepository) : IRequestHandler<GetAllCustomerBalancesQuery, Result<ICollection<CustomerBalanceItem>>>
+        public class GetAllCustomerBalancesHandler(IOrderRepository orderRepository, IPaymentRepository paymentRepository)
+        : IRequestHandler<GetAllCustomerBalancesQuery, Result<ICollection<CustomerBalanceItem>>>
         {
             public async Task<Result<ICollection<CustomerBalanceItem>>> Handle(GetAllCustomerBalancesQuery request, CancellationToken cancellationToken)
             {
                 try
                 {
+                    var orders = await orderRepository.GetAllAsync();
                     var payments = await paymentRepository.GetAllAsync();
 
-                    var grouped = payments
+                    var confirmedPaymentsByCustomer = payments
                         .Where(x => x.IsConfirmed)
-                        .GroupBy(x => new { x.CustomerId, x.Customer.Name, x.Customer.Email })
-                        .Select(g => new CustomerBalanceItem(
-                            g.Key.CustomerId,
-                            g.Key.Name,
-                            g.Key.Email,
-                            g.Sum(x => x.AmountTotal),
-                            g.Sum(x => x.AmountPaid),
-                            g.Sum(x => x.OutstandingBalance)))
+                        .GroupBy(x => x.CustomerId)
+                        .ToDictionary(g => g.Key, g => g.Sum(x => x.AmountPaid));
+
+                    var grouped = orders
+                        .GroupBy(o => new { o.CustomerId, o.Customer.Name, o.Customer.Email })
+                        .Select(g =>
+                        {
+                            var totalBilled = g.Sum(o => o.TotalPrice);
+                            var walletCovered = g.Sum(o => o.WalletAmountUsed);
+                            var paystackPaid = confirmedPaymentsByCustomer.TryGetValue(g.Key.CustomerId, out var paid) ? paid : 0;
+                            var totalPaid = walletCovered + paystackPaid;
+                            var outstanding = Math.Max(0, totalBilled - totalPaid);
+
+                            return new CustomerBalanceItem(g.Key.CustomerId, g.Key.Name, g.Key.Email, totalBilled, totalPaid, outstanding);
+                        })
                         .ToList();
 
                     return Result<ICollection<CustomerBalanceItem>>.Success(grouped, "Customer balances retrieved successfully");

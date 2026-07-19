@@ -33,8 +33,9 @@ namespace Application.Queries
                     {
                         var orderPayments = payments.Where(x => x.OrderId == order.Id && x.IsConfirmed).ToList();
 
-                        var amountPaid = orderPayments.Sum(x => x.AmountPaid);
-                        var outstanding = order.TotalPrice - amountPaid;
+                        var paystackPaid = orderPayments.Sum(x => x.AmountPaid);
+                        var amountPaid = paystackPaid + order.WalletAmountUsed;
+                        var outstanding = Math.Max(0, order.TotalPrice - amountPaid);
 
                         return new OrderWithPaymentItem(order.Id, order.OrderNumber, order.OrderStatus.ToString(), order.TotalPrice, amountPaid, outstanding, order.OrderDate);
                     })

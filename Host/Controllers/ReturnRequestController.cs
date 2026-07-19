@@ -1,4 +1,7 @@
-﻿using MediatR;
+﻿using Application.Constants;
+using Application.Repositories;
+using Application.Services;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using static Application.Commands.ApproveReturnRequest;
@@ -13,18 +16,27 @@ namespace Host.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class ReturnRequestsController(IMediator mediator) : ControllerBase
+    public class ReturnRequestsController(IMediator mediator, ICurrentUser currentUser, ICustomerRepository customerRepository) : ControllerBase
     {
+        private async Task<Guid?> ResolveCustomerIdAsync()
+        {
+            var customer = await customerRepository.GetByUserIdAsync(currentUser.GetCurrentUserId());
+            return customer?.Id;
+        }
+
         [HttpPost]
-        [Authorize(Roles = "Customer")]
+        [Authorize(Roles = AppRoles.Customer)]
         public async Task<IActionResult> CreateReturnRequest([FromBody] CreateReturnRequestCommand command)
         {
-            var response = await mediator.Send(command);
+            var customerId = await ResolveCustomerIdAsync();
+            if (customerId is null) return BadRequest("Customer profile not found for this account");
+
+            var response = await mediator.Send(command with { CustomerId = customerId.Value });
             return Ok(response);
         }
 
         [HttpPatch("{id}/approve")]
-        [Authorize(Roles = "Supplier")]
+        [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> ApproveReturnRequest(Guid id)
         {
             var response = await mediator.Send(new ApproveReturnRequestCommand(id));
@@ -32,7 +44,7 @@ namespace Host.Controllers
         }
 
         [HttpPatch("{id}/reject")]
-        [Authorize(Roles = "Supplier")]
+        [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> RejectReturnRequest(Guid id, [FromBody] RejectReturnRequestCommand command)
         {
             var response = await mediator.Send(command with { ReturnRequestId = id });
@@ -46,15 +58,19 @@ namespace Host.Controllers
             return Ok(response);
         }
 
-        [HttpGet("customer/{customerId}")]
-        public async Task<IActionResult> GetByCustomer(Guid customerId)
+        [HttpGet("my-requests")]
+        [Authorize(Roles = AppRoles.Customer)]
+        public async Task<IActionResult> GetMyRequests()
         {
-            var response = await mediator.Send(new GetReturnRequestsByCustomerQuery(customerId));
+            var customerId = await ResolveCustomerIdAsync();
+            if (customerId is null) return BadRequest("Customer profile not found for this account");
+
+            var response = await mediator.Send(new GetReturnRequestsByCustomerQuery(customerId.Value));
             return Ok(response);
         }
 
         [HttpGet]
-        [Authorize(Roles = "Supplier")]
+        [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> GetAll()
         {
             var response = await mediator.Send(new GetAllReturnRequestsQuery());

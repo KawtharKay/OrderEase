@@ -13,7 +13,7 @@ namespace Application.Commands
     {
         public record ReturnItemDto(Guid ItemId, int Quantity);
 
-        public record CreateReturnRequestCommand(Guid CustomerId, Guid OrderId, Guid CategoryId, string Reason, ICollection<ReturnItemDto> Items) 
+        public record CreateReturnRequestCommand(Guid CustomerId, Guid OrderId, Guid CategoryId, string Reason, ICollection<ReturnItemDto> Items)
             : IRequest<Result<CreateReturnRequestResponse>>;
 
         public class CreateReturnRequestValidator : AbstractValidator<CreateReturnRequestCommand>
@@ -72,6 +72,8 @@ namespace Application.Commands
 
                     if (order.CustomerId != request.CustomerId) return Result<CreateReturnRequestResponse>.Failure("This order does not belong to this customer");
 
+                    if (order.OrderStatus != OrderStatus.Delivered) return Result<CreateReturnRequestResponse>.Failure("Only delivered orders can be returned");
+
                     var category = await categoryRepository.GetAsync(request.CategoryId);
                     if (category is null) return Result<CreateReturnRequestResponse>.Failure("Category not found");
 
@@ -84,10 +86,17 @@ namespace Application.Commands
 
                         if (requestedItem.Quantity > orderedItem.Quantity) return Result<CreateReturnRequestResponse>.Failure($"Cannot return more than the {orderedItem.Quantity} ordered for this item");
 
+                        var item = await itemRepository.GetAsync(requestedItem.ItemId);
+                        if (item is null) return Result<CreateReturnRequestResponse>.Failure("One of the items no longer exists");
+
+                        if (item.CategoryId != request.CategoryId)
+                            return Result<CreateReturnRequestResponse>.Failure($"'{item.Title}' does not belong to the selected category. All items in a return request must be from the same category.");
+
                         returnItemsToCreate.Add(new ReturnRequestItem
                         {
                             ItemId = requestedItem.ItemId,
                             Quantity = requestedItem.Quantity,
+                            UnitPrice = item.Price,
                             DateCreated = DateTime.UtcNow
                         });
                     }
@@ -121,7 +130,7 @@ namespace Application.Commands
 
                         try
                         {
-                            await emailService.SendGenericEmailAsync(supplier.Email, "New Return Request on OrderEase",$"<h2>Return Request Submitted</h2><p>{customer.Name} " +
+                            await emailService.SendGenericEmailAsync(supplier.Email, "New Return Request on OrderEase", $"<h2>Return Request Submitted</h2><p>{customer.Name} " +
                                 $"has requested a return for order {order.OrderNumber}.</p><p>Reason: {request.Reason}</p>");
                         }
                         catch (Exception ex)

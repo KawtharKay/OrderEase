@@ -22,6 +22,10 @@ namespace Infrastructure.Persistence.Configurations
                 .WithMany()
                 .HasForeignKey(x => x.ItemId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Property(x => x.UnitPrice)
+                .IsRequired()
+                .HasColumnType("decimal(18,2)");
         }
     }
 }

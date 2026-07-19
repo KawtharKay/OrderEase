@@ -2,7 +2,6 @@
 using Application.Services;
 using Domain.Entities;
 using Domain.Enums;
-using Infrastructure.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Infrastructure.Services

@@ -17,7 +17,16 @@ namespace Application.Queries
                 try
                 {
                     var returnRequests = await returnRequestRepository.GetAllAsync();
-                    return Result<ICollection<GetAllReturnRequestsResponse>>.Success(returnRequests.Adapt<List<GetAllReturnRequestsResponse>>(), "Return requests retrieved successfully");
+                    var response = returnRequests.Select(x => new GetAllReturnRequestsResponse(
+                        x.Id,
+                        x.Customer.Name,
+                        x.Order.OrderNumber,
+                        x.Category.Name,
+                        x.Reason,
+                        x.Status.ToString(),
+                        x.DateCreated)).ToList();
+
+                    return Result<ICollection<GetAllReturnRequestsResponse>>.Success(response, "Return requests retrieved successfully");
                 }
                 catch (Exception ex)
                 {
