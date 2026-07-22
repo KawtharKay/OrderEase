@@ -8,17 +8,14 @@ namespace Infrastructure.Services
 {
     public class EmailService(IConfiguration configuration) : IEmailService
     {
-        public async Task SendVerificationEmailAsync(string toEmail, string verificationToken)
+        public async Task SendVerificationEmailAsync(string toEmail, string verificationCode)
         {
-            var baseUrl = configuration["AppSettings:BaseUrl"];
             var subject = "Verify your OrderEase account";
             var body = $@"
                 <h2>Welcome to OrderEase</h2>
-                <p>Thank you for registering. Please verify your email address by clicking the link below:</p>
-                <a href='{baseUrl}/verify-email?token={verificationToken}'>
-                    Verify Email Address
-                </a>
-                <p>This link expires in 24 hours.</p>
+                <p>Thank you for registering. Enter this code to verify your email address:</p>
+                <h1 style='letter-spacing: 8px;'>{verificationCode}</h1>
+                <p>This code expires in 15 minutes.</p>
                 <p>If you did not create an account, please ignore this email.</p>";
 
             await SendEmailAsync(toEmail, subject, body);

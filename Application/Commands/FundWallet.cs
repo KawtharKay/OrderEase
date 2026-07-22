@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Enums;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 
 namespace Application.Commands
 {
@@ -31,6 +32,7 @@ namespace Application.Commands
             IWalletRepository walletRepository,
             IWalletTransactionRepository walletTransactionRepository,
             IPaystackService paystackService,
+            IConfiguration configuration,
             IUnitOfWork unitOfWork) : IRequestHandler<FundWalletCommand, Result<FundWalletResponse>>
         {
             public async Task<Result<FundWalletResponse>> Handle(FundWalletCommand request, CancellationToken cancellationToken)
@@ -54,8 +56,10 @@ namespace Application.Commands
                     }
 
                     var reference = $"WLT-{Guid.NewGuid().ToString("N")[..12]}";
+                    var baseUrl = configuration["AppSettings:BaseUrl"];
+                    var callbackUrl = $"{baseUrl}/payment-callback.html";
 
-                    var paystackResponse = await paystackService.InitializeTransactionAsync(customer.Email, request.Amount, reference);
+                    var paystackResponse = await paystackService.InitializeTransactionAsync(customer.Email, request.Amount, reference, callbackUrl);
 
                     if (!paystackResponse.Status) return Result<FundWalletResponse>.Failure("Failed to initialize wallet funding");
 

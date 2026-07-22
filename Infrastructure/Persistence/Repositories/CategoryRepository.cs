@@ -24,7 +24,7 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task<ICollection<Category>> GetAllAsync()
         {
-            return await context.Categories.ToListAsync();
+            return await context.Categories.Where(x => !x.IsDeleted).ToListAsync();
         }
 
         public void Update(Category category)

@@ -2,7 +2,7 @@
 {
     public interface IPaystackService
     {
-        Task<PaystackInitResponse> InitializeTransactionAsync(string email, decimal amount, string reference);
+        Task<PaystackInitResponse> InitializeTransactionAsync(string email, decimal amount, string reference, string callbackUrl);
         Task<PaystackVerifyResponse> VerifyTransactionAsync(string reference);
     }
 

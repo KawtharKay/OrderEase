@@ -15,8 +15,10 @@ namespace Application.Commands
             public ResendVerificationEmailValidator()
             {
                 RuleFor(x => x.Email)
-                    .NotEmpty().WithMessage("Email is required")
-                    .EmailAddress().WithMessage("Enter a valid email address");
+                    .NotEmpty()
+                    .WithMessage("Email is required")
+                    .EmailAddress()
+                    .WithMessage("Enter a valid email address");
             }
         }
 
@@ -29,14 +31,15 @@ namespace Application.Commands
 
                 if (user.IsVerified) return Result<string>.Failure("This account is already verified");
 
-                user.VerificationToken = Guid.NewGuid().ToString();
-                user.VerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
+                var verificationCode = Random.Shared.Next(100000, 999999).ToString();
+                user.VerificationToken = verificationCode;
+                user.VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15);
                 userRepository.Update(user);
                 await unitOfWork.SaveAsync();
 
-                await emailService.SendVerificationEmailAsync(request.Email, user.VerificationToken);
+                await emailService.SendVerificationEmailAsync(request.Email, verificationCode);
 
-                return Result<string>.Success("Verification email sent", "Please check your email for the verification link");
+                return Result<string>.Success("Verification email sent", "Please check your email for the new code");
             }
         }
     }

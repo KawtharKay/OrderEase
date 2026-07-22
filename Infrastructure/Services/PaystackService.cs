@@ -24,13 +24,14 @@ namespace Infrastructure.Services
         }
 
         public async Task<PaystackInitResponse> InitializeTransactionAsync(
-            string email, decimal amount, string reference)
+            string email, decimal amount, string reference, string callbackUrl)
         {
             var payload = new
             {
                 email,
-                amount = (int)(amount * 100), // Paystack expects amount in kobo
-                reference
+                amount = (int)(amount * 100),
+                reference,
+                callback_url = callbackUrl
             };
 
             var response = await _httpClient.PostAsJsonAsync("/transaction/initialize", payload);
@@ -62,11 +63,10 @@ namespace Infrastructure.Services
             return new PaystackVerifyResponse(
                 result!.Status,
                 result.Data.Status,
-                result.Data.Amount / 100m, // convert back from kobo
+                result.Data.Amount / 100m,
                 result.Data.Customer.Email);
         }
 
-        // Internal classes for deserializing Paystack's raw API response
         private class PaystackInitApiResponse
         {
             public bool Status { get; set; }

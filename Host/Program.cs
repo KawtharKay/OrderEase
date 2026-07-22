@@ -1,4 +1,6 @@
 using Application.Common.Settings;
+using Application.Constants;
+using Application.Repositories;
 using Domain.Entities;
 using Host.Extensions;
 using Microsoft.AspNetCore.Identity;
@@ -67,6 +69,55 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var supplierRepository = scope.ServiceProvider.GetRequiredService<ISupplierRepository>();
+    var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+    var roleRepository = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+    var existingSupplier = await supplierRepository.GetFirstAsync();
+    if (existingSupplier is null)
+    {
+        const string seedEmail = "orderease111@gmail.com";
+        const string seedPassword = "Pa$$word";   
+
+        var salt = Guid.NewGuid().ToString();
+        var user = new User
+        {
+            Email = seedEmail,
+            Salt = salt,
+            CreatedBy = "seed",
+            IsVerified = true,
+            DateCreated = DateTime.UtcNow
+        };
+        user.HashPassword = passwordHasher.HashPassword(user, $"{salt}{seedPassword}");
+
+        await userRepository.AddAsync(user);
+        await unitOfWork.SaveAsync();
+
+        var supplierRole = await roleRepository.GetAsync(AppRoles.Supplier);
+        if (supplierRole != null)
+        {
+            await userRepository.AssignRoleAsync(new UserRole { UserId = user.Id, RoleId = supplierRole.Id });
+        }
+
+        var supplier = new Supplier
+        {
+            UserId = user.Id,
+            Name = "OrderEase (WASHO ENTERPRISE)", 
+            Email = seedEmail,
+            PhoneNumber = "08020502701",
+            Address = "Km 27, Lagos-Abeokuta Expressway, Lagos, Nigeria",
+            CreatedBy = "",
+            DateCreated = DateTime.UtcNow
+        };
+        await supplierRepository.AddAsync(supplier);
+        await unitOfWork.SaveAsync();
+    }
+}
 
 app.UseHttpsRedirection();
 
@@ -86,11 +137,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 app.MapHub<NotificationHub>("/hubs/notifications");
-
-
-//var hasher = new PasswordHasher<User>();
-//var hash = hasher.HashPassword(new User(), "admin");
-//Console.WriteLine(hash);
 
 
 app.Run();

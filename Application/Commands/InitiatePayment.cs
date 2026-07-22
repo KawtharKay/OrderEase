@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Enums;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 
 namespace Application.Commands
 {
@@ -27,7 +28,7 @@ namespace Application.Commands
         }
 
         public class InitiatePaymentHandler(IOrderRepository orderRepository, ICustomerRepository customerRepository, IPaymentRepository paymentRepository, IPaystackService paystackService,
-            IUnitOfWork unitOfWork) : IRequestHandler<InitiatePaymentCommand, Result<InitiatePaymentResponse>>
+            IConfiguration configuration, IUnitOfWork unitOfWork) : IRequestHandler<InitiatePaymentCommand, Result<InitiatePaymentResponse>>
         {
             public async Task<Result<InitiatePaymentResponse>> Handle(InitiatePaymentCommand request, CancellationToken cancellationToken)
             {
@@ -40,8 +41,10 @@ namespace Application.Commands
                     if (customer == null) return Result<InitiatePaymentResponse>.Failure("Customer not found");
 
                     var reference = $"ORDP-{Guid.NewGuid().ToString("N")[..12]}";
+                    var baseUrl = configuration["AppSettings:BaseUrl"];
+                    var callbackUrl = $"{baseUrl}/payment-callback.html";
 
-                    var paystackResponse = await paystackService.InitializeTransactionAsync(customer.Email, order.TotalPrice, reference);
+                    var paystackResponse = await paystackService.InitializeTransactionAsync(customer.Email, order.TotalPrice, reference, callbackUrl);
 
                     if (!paystackResponse.Status) return Result<InitiatePaymentResponse>.Failure("Failed to initialize payment");
 
