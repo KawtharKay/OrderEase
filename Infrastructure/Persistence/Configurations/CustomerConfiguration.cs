@@ -27,10 +27,6 @@ namespace Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(300);
 
-            builder.Property(x => x.PaymentStatus)
-                .IsRequired()
-                .HasDefaultValue(PaymentStatus.Pending);
-
             builder.HasOne(x => x.User)
                 .WithOne()
                 .HasForeignKey<Customer>(x => x.UserId)

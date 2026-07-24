@@ -7,6 +7,7 @@
         ReturnRequested,
         OrderStatusChanged,
         ReturnApproved,
-        ReturnRejected
+        ReturnRejected,
+        WalletFunded
     }
 }

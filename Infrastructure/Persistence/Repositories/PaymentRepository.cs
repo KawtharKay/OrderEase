@@ -30,6 +30,14 @@ namespace Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
+        public async Task<ICollection<Payment>> GetByOrderIdAsync(Guid orderId)
+        {
+            return await context.Payments
+                .Where(x => x.OrderId == orderId)
+                .OrderByDescending(x => x.DateCreated)
+                .ToListAsync();
+        }
+
         public async Task<ICollection<Payment>> GetAllAsync()
         {
             return await context.Payments

@@ -14,7 +14,7 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task<Order?> GetAsync(Guid id)
         {
-            return await context.Orders.Include(x => x.OrderItems).ThenInclude(x => x.Item).FirstOrDefaultAsync(x => x.Id == id);
+            return await context.Orders.Include(x => x.Customer).Include(x => x.OrderItems).ThenInclude(x => x.Item).FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         }
 
         public async Task<Order?> GetAsync(string orderNumber)

@@ -22,6 +22,11 @@ namespace Infrastructure.Persistence.Repositories
             return await context.Suppliers.FirstOrDefaultAsync(x => x.UserId == userId);
         }
 
+        public async Task<Supplier?> GetFirstAsync()
+        {
+            return await context.Suppliers.FirstOrDefaultAsync(x => !x.IsDeleted);
+        }
+
         public void Update(Supplier supplier)
         {
             context.Suppliers.Update(supplier);

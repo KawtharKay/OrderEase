@@ -7,15 +7,21 @@ namespace Application.Commands
 {
     public class VerifyEmail
     {
-        public record VerifyEmailCommand(string Token) : IRequest<Result<VerifyEmailResponse>>;
+        public record VerifyEmailCommand(string Email, string Code) : IRequest<Result<VerifyEmailResponse>>;
 
         public class VerifyEmailCommandValidator : AbstractValidator<VerifyEmailCommand>
         {
             public VerifyEmailCommandValidator()
             {
-                RuleFor(x => x.Token)
+                RuleFor(x => x.Email)
                     .NotEmpty()
-                    .WithMessage("Verification token is required");
+                    .WithMessage("Email is required");
+
+                RuleFor(x => x.Code)
+                    .NotEmpty()
+                    .WithMessage("Verification code is required")
+                    .Length(6)
+                    .WithMessage("Enter the 6-digit code from your email");
             }
         }
 
@@ -23,12 +29,14 @@ namespace Application.Commands
         {
             public async Task<Result<VerifyEmailResponse>> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
             {
-                var user = await userRepository.GetByVerificationTokenAsync(request.Token);
-                if (user == null) return Result<VerifyEmailResponse>.Failure("Invalid verification token");
-
-                if (user.VerificationTokenExpiry < DateTime.UtcNow) return Result<VerifyEmailResponse>.Failure("Verification token has expired. Please register again");
+                var user = await userRepository.GetAsync(request.Email);
+                if (user == null) return Result<VerifyEmailResponse>.Failure("No account found with this email address");
 
                 if (user.IsVerified) return Result<VerifyEmailResponse>.Failure("Email is already verified");
+
+                if (user.VerificationToken != request.Code) return Result<VerifyEmailResponse>.Failure("Incorrect verification code");
+
+                if (user.VerificationTokenExpiry < DateTime.UtcNow) return Result<VerifyEmailResponse>.Failure("This code has expired. Please request a new one");
 
                 user.IsVerified = true;
                 user.VerificationToken = null;

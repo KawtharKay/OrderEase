@@ -1,4 +1,6 @@
 using Application.Common.Settings;
+using Application.Constants;
+using Application.Repositories;
 using Domain.Entities;
 using Host.Extensions;
 using Microsoft.AspNetCore.Identity;
@@ -7,13 +9,23 @@ using Microsoft.OpenApi;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMediatRWithBehaviors();
 builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -57,8 +69,59 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var supplierRepository = scope.ServiceProvider.GetRequiredService<ISupplierRepository>();
+    var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+    var roleRepository = scope.ServiceProvider.GetRequiredService<IRoleRepository>();
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+    var existingSupplier = await supplierRepository.GetFirstAsync();
+    if (existingSupplier is null)
+    {
+        const string seedEmail = "orderease111@gmail.com";
+        const string seedPassword = "Pa$$word";   
+
+        var salt = Guid.NewGuid().ToString();
+        var user = new User
+        {
+            Email = seedEmail,
+            Salt = salt,
+            CreatedBy = "seed",
+            IsVerified = true,
+            DateCreated = DateTime.UtcNow
+        };
+        user.HashPassword = passwordHasher.HashPassword(user, $"{salt}{seedPassword}");
+
+        await userRepository.AddAsync(user);
+        await unitOfWork.SaveAsync();
+
+        var supplierRole = await roleRepository.GetAsync(AppRoles.Supplier);
+        if (supplierRole != null)
+        {
+            await userRepository.AssignRoleAsync(new UserRole { UserId = user.Id, RoleId = supplierRole.Id });
+        }
+
+        var supplier = new Supplier
+        {
+            UserId = user.Id,
+            Name = "OrderEase (WASHO ENTERPRISE)", 
+            Email = seedEmail,
+            PhoneNumber = "08020502701",
+            Address = "Km 27, Lagos-Abeokuta Expressway, Lagos, Nigeria",
+            CreatedBy = "",
+            DateCreated = DateTime.UtcNow
+        };
+        await supplierRepository.AddAsync(supplier);
+        await unitOfWork.SaveAsync();
+    }
+}
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -73,11 +136,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "OrderEase API v1");
     });
 }
-
-
-//var hasher = new PasswordHasher<User>();
-//var hash = hasher.HashPassword(new User(), "admin");
-//Console.WriteLine(hash);
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 
 app.Run();

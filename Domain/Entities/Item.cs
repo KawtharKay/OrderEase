@@ -9,6 +9,7 @@
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public bool IsAvailable { get; set; }
+        public byte[] RowVersion { get; set; } = default!;
         public ICollection<OrderItem> OrderItems { get; set; } = new HashSet<OrderItem>();
     }
 }

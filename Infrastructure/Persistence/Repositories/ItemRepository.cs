@@ -19,7 +19,7 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task<ICollection<Item>> GetAllAsync()
         {
-            return await context.Items.ToListAsync();
+            return await context.Items.Where(x => !x.IsDeleted).ToListAsync();
         }
 
 

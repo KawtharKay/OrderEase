@@ -7,5 +7,6 @@
         public Guid ItemId { get; set; }
         public Item Item { get; set; } = default!;
         public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
     }
 }

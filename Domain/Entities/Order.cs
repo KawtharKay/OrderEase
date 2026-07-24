@@ -9,6 +9,8 @@ namespace Domain.Entities
         public Customer Customer { get; set; } = default!;
         public OrderStatus OrderStatus { get; set; } 
         public decimal TotalPrice { get; set; }
+        public decimal WalletAmountUsed { get; set; }
+        public decimal AmountOwed { get; set; }
         public DateTime OrderDate { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; } = new HashSet<OrderItem>();
     }

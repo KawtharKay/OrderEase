@@ -15,6 +15,12 @@ namespace Infrastructure.Persistence.Repositories
         public async Task<ReturnRequest?> GetAsync(Guid id)
         {
             return await context.ReturnRequests
+                .Include(x => x.Customer)
+                    .ThenInclude(x => x.User)
+                .Include(x => x.Order)
+                .Include(x => x.ReturnRequestItems)
+                    .ThenInclude(x => x.Item)
+                .Include(x => x.Category)
                 .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
         }
 
@@ -22,6 +28,7 @@ namespace Infrastructure.Persistence.Repositories
         {
             return await context.ReturnRequests
                 .Where(x => x.CustomerId == customerId)
+                .Include(x => x.Order)
                 .Include(x => x.ReturnRequestItems)
                 .OrderByDescending(x => x.DateCreated)
                 .ToListAsync();
@@ -31,6 +38,7 @@ namespace Infrastructure.Persistence.Repositories
         {
             return await context.ReturnRequests
                 .Include(x => x.Customer)
+                .Include(x => x.Order)
                 .Include(x => x.Category)
                 .Include(x => x.ReturnRequestItems)
                     .ThenInclude(x => x.Item)

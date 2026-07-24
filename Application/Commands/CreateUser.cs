@@ -5,6 +5,7 @@ using Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Commands
 {
@@ -32,7 +33,8 @@ namespace Application.Commands
             }
         }
 
-        public class CreateUserHandler(IUserRepository userRepository, IPasswordHasher<User> passwordHasher, IEmailService emailService, IUnitOfWork unitOfWork) : IRequestHandler<CreateUserCommand, Result<CreateUserResponse>>
+        public class CreateUserHandler(IUserRepository userRepository, IPasswordHasher<User> passwordHasher, IEmailService emailService, ILogger<CreateUserHandler> logger, IUnitOfWork unitOfWork)
+            : IRequestHandler<CreateUserCommand, Result<CreateUserResponse>>
         {
             public async Task<Result<CreateUserResponse>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
             {
@@ -40,7 +42,7 @@ namespace Application.Commands
                 if (userExists) return Result<CreateUserResponse>.Failure("User already exist");
 
                 string salt = Guid.NewGuid().ToString();
-                string verificationToken = Guid.NewGuid().ToString();
+                string verificationCode = Random.Shared.Next(100000, 999999).ToString();
 
                 var user = new User
                 {
@@ -48,8 +50,8 @@ namespace Application.Commands
                     Salt = salt,
                     CreatedBy = request.Email,
                     IsVerified = false,
-                    VerificationToken = verificationToken,
-                    VerificationTokenExpiry = DateTime.UtcNow.AddHours(24),
+                    VerificationToken = verificationCode,
+                    VerificationTokenExpiry = DateTime.UtcNow.AddMinutes(15),
                     DateCreated = DateTime.UtcNow
                 };
                 string saltPassword = $"{salt}{request.Password}";
@@ -60,19 +62,18 @@ namespace Application.Commands
 
                 try
                 {
-                    await emailService.SendVerificationEmailAsync(request.Email, verificationToken);
+                    await emailService.SendVerificationEmailAsync(request.Email, verificationCode);
                 }
-                
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    logger.LogError(ex, "Failed to send verification email to {Email}", request.Email);
                     return Result<CreateUserResponse>.Success(new CreateUserResponse(user.Id), "Account created but verification email could not be sent. Please use the resend verification option");
                 }
 
-                return Result<CreateUserResponse>.Success(new CreateUserResponse(user.Id), "User created successfully! Please check your email to verify your account");
+                return Result<CreateUserResponse>.Success(new CreateUserResponse(user.Id), "User created successfully! Please check your email for a verification code");
             }
         }
 
         public record CreateUserResponse(Guid Id);
-        
     }
 }

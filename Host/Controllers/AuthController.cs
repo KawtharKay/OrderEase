@@ -36,10 +36,10 @@ namespace Host.Controllers
             return Ok(response);
         }
 
-        [HttpGet("verify-email")]
-        public async Task<IActionResult> VerifyEmail([FromQuery] string token)
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailCommand command)
         {
-            var response = await mediator.Send(new VerifyEmailCommand(token));
+            var response = await mediator.Send(command);
             return Ok(response);
         }
 

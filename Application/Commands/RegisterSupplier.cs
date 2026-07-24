@@ -41,6 +41,9 @@ namespace Application.Commands
         {
             public async Task<Result<RegisterSupplierResponse>> Handle(RegisterSupplierCommand request, CancellationToken cancellationToken)
             {
+                var anySupplierExists = await supplierRepository.GetFirstAsync();
+                if (anySupplierExists != null) return Result<RegisterSupplierResponse>.Failure("A supplier account already exists for this store");
+
                 var user = await userRepository.GetAsync(request.UserId);
                 if (user == null) return Result<RegisterSupplierResponse>.Failure("User not found");
 

@@ -26,6 +26,15 @@ namespace Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .HasColumnType("decimal(18,2)");
 
+            builder.Property(x => x.WalletAmountUsed)
+                .IsRequired()
+                .HasColumnType("decimal(18,2)")
+                .HasDefaultValue(0);
+
+            builder.Property(x => x.AmountOwed)
+                .IsRequired()
+                .HasColumnType("decimal(18,2)");
+
             builder.Property(x => x.OrderDate)
                 .IsRequired();
 
