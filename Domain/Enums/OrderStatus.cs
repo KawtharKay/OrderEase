@@ -6,6 +6,7 @@
         Processing,
         Dispatched,
         ReadyForPickup,
-        Delivered
+        Delivered,
+        Cancelled
     }
 }

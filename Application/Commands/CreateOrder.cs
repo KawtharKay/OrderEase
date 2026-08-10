@@ -103,6 +103,8 @@ namespace Application.Commands
                         CustomerId = request.CustomerId,
                         OrderStatus = OrderStatus.Received,
                         TotalPrice = totalPrice,
+                        WalletAmountUsed = walletAmountUsed,
+                        AmountOwed = amountOwed,
                         OrderDate = DateTime.UtcNow,
                         DateCreated = DateTime.UtcNow
                     };

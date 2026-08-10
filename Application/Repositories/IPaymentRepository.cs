@@ -10,6 +10,7 @@ namespace Application.Repositories
         Task<ICollection<Payment>> GetAllByCustomerIdAsync(Guid customerId);
         Task<ICollection<Payment>> GetByOrderIdAsync(Guid orderId);
         Task<ICollection<Payment>> GetAllAsync();
+        Task<Payment?> GetPendingPaymentByOrderIdAsync(Guid orderId);
         void Update(Payment payment);
     }
 }

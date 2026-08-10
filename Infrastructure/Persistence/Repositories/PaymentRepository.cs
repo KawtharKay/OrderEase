@@ -1,5 +1,6 @@
 ﻿using Application.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,6 +45,14 @@ namespace Infrastructure.Persistence.Repositories
                 .Include(x => x.Customer)
                 .OrderByDescending(x => x.DateCreated)
                 .ToListAsync();
+        }
+
+        public async Task<Payment?> GetPendingPaymentByOrderIdAsync(Guid orderId)
+        {
+            return await context.Payments
+                .Where(x => x.OrderId == orderId && !x.IsConfirmed && x.Status == PaystackStatus.Pending)
+                .OrderByDescending(x => x.DateCreated)
+                .FirstOrDefaultAsync();
         }
 
         public void Update(Payment payment)

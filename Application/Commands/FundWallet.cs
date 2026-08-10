@@ -57,7 +57,7 @@ namespace Application.Commands
 
                     var reference = $"WLT-{Guid.NewGuid().ToString("N")[..12]}";
                     var baseUrl = configuration["AppSettings:BaseUrl"];
-                    var callbackUrl = $"{baseUrl}/payment-callback.html";
+                    var callbackUrl = $"{baseUrl}/paymentCallback.html";
 
                     var paystackResponse = await paystackService.InitializeTransactionAsync(customer.Email, request.Amount, reference, callbackUrl);
 
