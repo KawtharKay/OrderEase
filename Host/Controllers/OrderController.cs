@@ -4,6 +4,7 @@ using Application.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Application.Commands.CancelOrder;
 using static Application.Commands.CreateOrder;
 using static Application.Commands.PayOrderWithWallet;
 using static Application.Commands.UpdateOrderStatus;
@@ -77,6 +78,17 @@ namespace Host.Controllers
         public async Task<IActionResult> GetAllOrders()
         {
             var response = await mediator.Send(new GetAllOrdersQuery());
+            return Ok(response);
+        }
+
+        [HttpPost("{id}/cancel")]
+        [Authorize(Roles = AppRoles.Customer)]
+        public async Task<IActionResult> CancelOrder(Guid id)
+        {
+            var customerId = await ResolveCustomerIdAsync();
+            if (customerId is null) return BadRequest("Customer profile not found for this account");
+
+            var response = await mediator.Send(new CancelOrderCommand(id, customerId.Value));
             return Ok(response);
         }
     }
