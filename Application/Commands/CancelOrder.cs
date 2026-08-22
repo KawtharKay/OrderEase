@@ -27,7 +27,7 @@ namespace Application.Commands
 
         public class CancelOrderHandler(IOrderRepository orderRepository, IItemRepository itemRepository, IPaymentRepository paymentRepository,
             IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository, ISupplierRepository supplierRepository,
-            INotificationService notificationService, IUnitOfWork unitOfWork) : IRequestHandler<CancelOrderCommand, Result<string>>
+            IOrderStatusHistoryRepository orderStatusHistoryRepository, INotificationService notificationService, IUnitOfWork unitOfWork) : IRequestHandler<CancelOrderCommand, Result<string>>
         {
             public async Task<Result<string>> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
             {
@@ -86,9 +86,20 @@ namespace Application.Commands
                         });
                     }
 
+                    var previousStatus = order.OrderStatus;
                     order.OrderStatus = OrderStatus.Cancelled;
                     order.AmountOwed = 0;
                     orderRepository.Update(order);
+
+                    await orderStatusHistoryRepository.AddAsync(new OrderStatusHistory
+                    {
+                        OrderId = order.Id,
+                        PreviousStatus = previousStatus,
+                        NewStatus = OrderStatus.Cancelled,
+                        ChangedAt = DateTime.UtcNow,
+                        DateCreated = DateTime.UtcNow
+                    });
+
                     await unitOfWork.SaveAsync();
 
                     var supplier = await supplierRepository.GetFirstAsync();

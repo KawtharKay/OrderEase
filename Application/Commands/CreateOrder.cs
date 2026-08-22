@@ -30,20 +30,21 @@ namespace Application.Commands
 
                 RuleForEach(x => x.Items)
                     .ChildRules(item =>
-                {
-                    item.RuleFor(x => x.ItemId)
-                        .NotEmpty()
-                        .WithMessage("Item ID is required");
+                    {
+                        item.RuleFor(x => x.ItemId)
+                            .NotEmpty()
+                            .WithMessage("Item ID is required");
 
-                    item.RuleFor(x => x.Quantity)
-                        .GreaterThan(0)
-                        .WithMessage("Quantity must be greater than zero");
-                });
+                        item.RuleFor(x => x.Quantity)
+                            .GreaterThan(0)
+                            .WithMessage("Quantity must be greater than zero");
+                    });
             }
         }
 
         public class CreateOrderHandler(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, ICustomerRepository customerRepository, IItemRepository itemRepository,
-          ISupplierRepository supplierRepository, IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository, INotificationService notificationService, IEmailService emailService, ILogger<CreateOrderHandler> logger, IUnitOfWork unitOfWork) : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponse>>
+          ISupplierRepository supplierRepository, IOrderStatusHistoryRepository orderStatusHistoryRepository,
+          INotificationService notificationService, IEmailService emailService, ILogger<CreateOrderHandler> logger, IUnitOfWork unitOfWork) : IRequestHandler<CreateOrderCommand, Result<CreateOrderResponse>>
         {
             public async Task<Result<CreateOrderResponse>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
             {
@@ -83,18 +84,6 @@ namespace Application.Commands
                         itemRepository.Update(item);
                     }
 
-                    var wallet = await walletRepository.GetByCustomerAsync(request.CustomerId);
-                    decimal walletAmountUsed = 0;
-
-                    if (wallet != null && wallet.Balance > 0)
-                    {
-                        walletAmountUsed = Math.Min(wallet.Balance, totalPrice);
-                        wallet.Balance -= walletAmountUsed;
-                        walletRepository.Update(wallet);
-                    }
-
-                    var amountOwed = totalPrice - walletAmountUsed;
-
                     var orderNumber = $"ORD/{DateTime.UtcNow:yyyyMMddHHmmss}{Random.Shared.Next(0000, 9999)}";
 
                     var order = new Order
@@ -102,9 +91,11 @@ namespace Application.Commands
                         OrderNumber = orderNumber,
                         CustomerId = request.CustomerId,
                         OrderStatus = OrderStatus.Received,
+                        ItemsSubtotal = totalPrice,
                         TotalPrice = totalPrice,
-                        WalletAmountUsed = walletAmountUsed,
-                        AmountOwed = amountOwed,
+                        WalletAmountUsed = 0,
+                        AmountOwed = totalPrice,
+                        DeliveryFeeConfirmed = true,
                         OrderDate = DateTime.UtcNow,
                         DateCreated = DateTime.UtcNow
                     };
@@ -112,27 +103,21 @@ namespace Application.Commands
                     await orderRepository.AddAsync(order);
                     await unitOfWork.SaveAsync();
 
+                    await orderStatusHistoryRepository.AddAsync(new OrderStatusHistory
+                    {
+                        OrderId = order.Id,
+                        PreviousStatus = null,
+                        NewStatus = OrderStatus.Received,
+                        ChangedAt = DateTime.UtcNow,
+                        DateCreated = DateTime.UtcNow
+                    });
+
                     foreach (var orderItem in orderItemsToCreate)
                     {
                         orderItem.OrderId = order.Id;
                     }
 
                     await orderItemRepository.AddRangeAsync(orderItemsToCreate);
-
-                    if (walletAmountUsed > 0)
-                    {
-                        var walletTransaction = new WalletTransaction
-                        {
-                            WalletId = wallet!.Id,
-                            OrderId = order.Id,
-                            Amount = walletAmountUsed,
-                            Type = WalletTransactionType.Debit,
-                            Status = PaystackStatus.Successful,
-                            Description = $"Applied to order {order.OrderNumber}",
-                            DateCreated = DateTime.UtcNow
-                        };
-                        await walletTransactionRepository.AddAsync(walletTransaction);
-                    }
 
                     await unitOfWork.SaveAsync();
 
@@ -155,11 +140,8 @@ namespace Application.Commands
                         }
                     }
 
-                    var message = walletAmountUsed > 0
-                        ? $"Order placed. ₦{walletAmountUsed:N2} was deducted from your wallet. Remaining balance to pay: ₦{amountOwed:N2}"
-                        : "Order placed successfully";
-
-                    return Result<CreateOrderResponse>.Success(new CreateOrderResponse(order.Id, order.OrderNumber, order.TotalPrice, walletAmountUsed, amountOwed), message);
+                    return Result<CreateOrderResponse>.Success(new CreateOrderResponse(order.Id, order.OrderNumber, order.TotalPrice, order.WalletAmountUsed, order.AmountOwed),
+                        "Order placed successfully. Choose how you'd like to pay.");
                 }
 
                 catch (DbUpdateConcurrencyException)

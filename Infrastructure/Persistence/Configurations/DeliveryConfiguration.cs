@@ -13,6 +13,14 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(x => x.DeliveryMethod)
                 .IsRequired();
 
+            builder.Property(x => x.DeliveryAddress)
+                .HasMaxLength(500);
+
+            builder.HasOne(x => x.DeliveryLocation)
+                .WithMany()
+                .HasForeignKey(x => x.DeliveryLocationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             builder.HasOne(x => x.Order)
                 .WithOne()
                 .HasForeignKey<Delivery>(x => x.OrderId)

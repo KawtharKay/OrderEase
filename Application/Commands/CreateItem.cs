@@ -9,7 +9,7 @@ namespace Application.Commands
 {
     public class CreateItem
     {
-        public record CreateItemCommand(Guid CategoryId, string Title, string ImageUrl, decimal Price, int Quantity) : IRequest<Result<CreateItemResponse>>;
+        public record CreateItemCommand(Guid CategoryId, string Title, string ImageUrl, decimal Price, decimal CostPrice, int Quantity) : IRequest<Result<CreateItemResponse>>;
 
         public class CreateItemValidator : AbstractValidator<CreateItemCommand>
         {
@@ -35,12 +35,16 @@ namespace Application.Commands
                     .GreaterThan(0)
                     .WithMessage("Price must be greater than zero");
 
+                RuleFor(x => x.CostPrice)
+                    .GreaterThanOrEqualTo(0)
+                    .WithMessage("Cost price cannot be negative");
+
                 RuleFor(x => x.Quantity)
                     .GreaterThanOrEqualTo(0)
                     .WithMessage("Quantity cannot be negative");
             }
         }
-        public class CreateItemHandler(IItemRepository itemRepository, ICategoryRepository categoryRepository, IUnitOfWork unitOfWork) : IRequestHandler<CreateItemCommand, Result<CreateItemResponse>>
+        public class CreateItemHandler(IItemRepository itemRepository, ICategoryRepository categoryRepository, IStockMovementRepository stockMovementRepository, IUnitOfWork unitOfWork) : IRequestHandler<CreateItemCommand, Result<CreateItemResponse>>
         {
             public async Task<Result<CreateItemResponse>> Handle(CreateItemCommand request, CancellationToken cancellationToken)
             {
@@ -55,6 +59,7 @@ namespace Application.Commands
                         Title = request.Title,
                         ImageUrl = request.ImageUrl,
                         Price = request.Price,
+                        CostPrice = request.CostPrice,
                         Quantity = request.Quantity,
                         IsAvailable = request.Quantity > 0,
                         DateCreated = DateTime.UtcNow
@@ -62,6 +67,20 @@ namespace Application.Commands
 
                     await itemRepository.AddAsync(item);
                     await unitOfWork.SaveAsync();
+
+                    if (request.Quantity > 0)
+                    {
+                        await stockMovementRepository.AddAsync(new StockMovement
+                        {
+                            ItemId = item.Id,
+                            QuantityAdded = request.Quantity,
+                            CostPrice = request.CostPrice,
+                            Reference = "Initial stock on item creation",
+                            DateReceived = DateTime.UtcNow,
+                            DateCreated = DateTime.UtcNow
+                        });
+                        await unitOfWork.SaveAsync();
+                    }
 
                     return Result<CreateItemResponse>.Success(item.Adapt<CreateItemResponse>(), "Item created successfully!");
                 }
@@ -72,6 +91,6 @@ namespace Application.Commands
             }
         }
 
-        public record CreateItemResponse(Guid Id, string Title, decimal Price, int Quantity, bool IsAvailable);
+        public record CreateItemResponse(Guid Id, string Title, decimal Price, decimal CostPrice, int Quantity, bool IsAvailable);
     }
 }

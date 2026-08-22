@@ -1,4 +1,5 @@
 ﻿using Application.Commands;
+using Application.Common.Behaviors;
 using Application.Common.Settings;
 using Application.Repositories;
 using Application.Services;
@@ -50,9 +51,13 @@ namespace Host.Extensions
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IItemRepository, ItemRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderStatusHistoryRepository, OrderStatusHistoryRepository>();
+            services.AddScoped<IStockMovementRepository, StockMovementRepository>();
             services.AddScoped<IOrderItemRepository, OrderItemRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IDeliveryRepository, DeliveryRepository>();
+            services.AddScoped<IDeliveryChargeRepository, DeliveryChargeRepository>();
+            services.AddScoped<IDeliveryLocationRepository, DeliveryLocationRepository>();
             services.AddScoped<IReturnRequestRepository, ReturnRequestRepository>();
             services.AddScoped<IReturnRequestItemRepository, ReturnRequestItemRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -64,7 +69,11 @@ namespace Host.Extensions
 
         public static IServiceCollection AddMediatRWithBehaviors(this IServiceCollection services)
         {
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<RegisterCustomer>());
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssemblyContaining<RegisterCustomer>();
+                cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            });
 
             services.AddValidatorsFromAssemblyContaining<RegisterCustomer>();
 

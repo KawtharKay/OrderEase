@@ -37,6 +37,9 @@ namespace Application.Commands
 
                     if (order.CustomerId != request.CustomerId) return Result<PayOrderWithWalletResponse>.Failure("This order does not belong to this customer");
 
+                    if (!order.DeliveryFeeConfirmed)
+                        return Result<PayOrderWithWalletResponse>.Failure("The supplier hasn't confirmed the delivery fee yet - you'll be notified when this order is ready to pay");
+
                     var confirmedPayments = await paymentRepository.GetByOrderIdAsync(order.Id);
                     var paystackPaid = confirmedPayments.Where(x => x.IsConfirmed).Sum(x => x.AmountPaid);
                     var totalPaid = order.WalletAmountUsed + paystackPaid;

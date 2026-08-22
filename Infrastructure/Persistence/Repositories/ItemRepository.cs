@@ -28,6 +28,27 @@ namespace Infrastructure.Persistence.Repositories
             return await context.Items.Where(x => x.CategoryId == categoryId).ToListAsync();
         }
 
+        public async Task<(ICollection<Item> Items, int TotalCount)> SearchAsync(string? search, Guid? categoryId, int page, int pageSize)
+        {
+            var query = context.Items.Where(x => !x.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(x => x.Title.Contains(search) || x.Category.Name.Contains(search));
+
+            if (categoryId.HasValue)
+                query = query.Where(x => x.CategoryId == categoryId.Value);
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(x => x.Title)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
         public void Update(Item item)
         {
             context.Items.Update(item);
