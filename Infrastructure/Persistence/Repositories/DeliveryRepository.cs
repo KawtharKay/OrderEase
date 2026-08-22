@@ -19,7 +19,7 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task<Delivery?> GetByOrderIdAsync(Guid orderId)
         {
-            return await context.Deliveries.FirstOrDefaultAsync(x => x.OrderId == orderId);
+            return await context.Deliveries.Include(x => x.DeliveryLocation).FirstOrDefaultAsync(x => x.OrderId == orderId);
         }
 
         public void Update(Delivery delivery)

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using static Application.Commands.CancelOrder;
 using static Application.Commands.CreateOrder;
 using static Application.Commands.PayOrderWithWallet;
+using static Application.Commands.SetDeliveryCharges;
 using static Application.Commands.UpdateOrderStatus;
 using static Application.Queries.GetAllOrders;
 using static Application.Queries.GetOrderById;
@@ -50,6 +51,14 @@ namespace Host.Controllers
         [HttpPatch("{id}/status")]
         [Authorize(Roles = AppRoles.Supplier)]
         public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] UpdateOrderStatusCommand command)
+        {
+            var response = await mediator.Send(command with { OrderId = id });
+            return Ok(response);
+        }
+
+        [HttpPut("{id}/delivery-charges")]
+        [Authorize(Roles = AppRoles.Supplier)]
+        public async Task<IActionResult> SetDeliveryCharges(Guid id, [FromBody] SetDeliveryChargesCommand command)
         {
             var response = await mediator.Send(command with { OrderId = id });
             return Ok(response);

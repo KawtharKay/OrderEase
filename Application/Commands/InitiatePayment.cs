@@ -45,6 +45,9 @@ namespace Application.Commands
                     var customer = await customerRepository.GetAsync(request.CustomerId);
                     if (customer == null) return Result<InitiatePaymentResponse>.Failure("Customer not found");
 
+                    if (!order.DeliveryFeeConfirmed)
+                        return Result<InitiatePaymentResponse>.Failure("The supplier hasn't confirmed the delivery fee yet - you'll be notified when this order is ready to pay");
+
                     var confirmedPayments = await paymentRepository.GetByOrderIdAsync(order.Id);
                     var paystackPaid = confirmedPayments.Where(x => x.IsConfirmed).Sum(x => x.AmountPaid);
                     var totalPaid = order.WalletAmountUsed + paystackPaid;
