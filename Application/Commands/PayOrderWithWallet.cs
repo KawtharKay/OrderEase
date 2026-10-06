@@ -68,6 +68,22 @@ namespace Application.Commands
                         DateCreated = DateTime.UtcNow
                     });
 
+                    await paymentRepository.AddAsync(new Payment
+                    {
+                        CustomerId = request.CustomerId,
+                        OrderId = order.Id,
+                        AmountPaid = amountToApply,
+                        AmountTotal = amountToApply,
+                        OutstandingBalance = 0,
+                        PaymentDate = DateTime.UtcNow,
+                        PaystackReference = $"WALLET-{order.OrderNumber}-{DateTime.UtcNow:HHmmss}",
+                        Status = PaystackStatus.Successful,
+                        IsConfirmed = true,
+                        DateConfirmed = DateTime.UtcNow,
+                        PaymentMethod = PaymentMethod.Wallet,
+                        DateCreated = DateTime.UtcNow
+                    });
+
                     await unitOfWork.SaveAsync();
 
                     var remainingOutstanding = Math.Max(0, outstanding - amountToApply);

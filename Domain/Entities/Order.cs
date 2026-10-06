@@ -17,5 +17,6 @@ namespace Domain.Entities
         public ICollection<OrderItem> OrderItems { get; set; } = new HashSet<OrderItem>();
         public ICollection<OrderStatusHistory> StatusHistory { get; set; } = new HashSet<OrderStatusHistory>();
         public ICollection<DeliveryCharge> DeliveryCharges { get; set; } = new HashSet<DeliveryCharge>();
+        public ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
     }
 }

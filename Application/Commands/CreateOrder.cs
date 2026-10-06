@@ -103,6 +103,9 @@ namespace Application.Commands
                     await orderRepository.AddAsync(order);
                     await unitOfWork.SaveAsync();
 
+                    customer.OutstandingBalance += order.AmountOwed;
+                    customerRepository.Update(customer);
+
                     await orderStatusHistoryRepository.AddAsync(new OrderStatusHistory
                     {
                         OrderId = order.Id,

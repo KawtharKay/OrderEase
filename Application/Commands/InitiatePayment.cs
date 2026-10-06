@@ -72,6 +72,7 @@ namespace Application.Commands
                         AmountPaid = 0,
                         AmountTotal = order.TotalPrice,
                         OutstandingBalance = order.TotalPrice,
+                        PaymentMethod = PaymentMethod.Paystack,
                         PaymentDate = DateTime.UtcNow,
                         PaystackReference = reference,
                         Status = PaystackStatus.Pending,

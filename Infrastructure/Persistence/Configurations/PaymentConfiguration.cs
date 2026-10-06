@@ -26,6 +26,9 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(x => x.PaymentDate)
                 .IsRequired();
 
+            builder.Property(x => x.PaymentMethod)
+                .IsRequired();
+
             builder.Property(x => x.PaystackReference)
                 .IsRequired()
                 .HasMaxLength(200);
@@ -47,7 +50,7 @@ namespace Infrastructure.Persistence.Configurations
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(x => x.Order)
-                .WithMany()
+                .WithMany(x => x.Payments)
                 .HasForeignKey(x => x.OrderId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
