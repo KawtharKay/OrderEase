@@ -33,14 +33,23 @@ namespace Application.Queries
                     var totalPaid = order.WalletAmountUsed + paystackPaid;
                     var outstanding = Math.Max(0, order.TotalPrice - totalPaid);
 
-                    var response = new GetOrderByIdResponse(order.Id, order.OrderNumber, order.CustomerId, order.OrderStatus.ToString(), order.TotalPrice,
+                    var response = new GetOrderByIdResponse(order.Id, order.OrderNumber, order.CustomerId, order.OrderStatus.ToString(),
+                    order.ItemsSubtotal, order.DeliveryCharges.Sum(x => x.Amount), order.TotalPrice, order.DeliveryFeeConfirmed,
                     order.WalletAmountUsed, totalPaid, outstanding, order.OrderDate,
                     order.OrderItems.Select(x => new OrderItemDto(
                     x.ItemId,
+                    x.Item.CategoryId,
                     x.Item.Title,
                     x.Quantity,
                     x.UnitPrice,
-                    x.SubTotal)).ToList());
+                    x.SubTotal)).ToList(),
+                    order.DeliveryCharges.Select(x => new DeliveryChargeDto(x.Label, x.Amount)).ToList(),
+                    order.StatusHistory
+                        .OrderBy(x => x.ChangedAt)
+                        .Select(x => new OrderStatusHistoryDto(
+                            x.PreviousStatus?.ToString(),
+                            x.NewStatus.ToString(),
+                            x.ChangedAt)).ToList());
 
                     return Result<GetOrderByIdResponse>.Success(response, "Order retrieved successfully");
                 }
@@ -51,9 +60,15 @@ namespace Application.Queries
             }
         }
 
-        public record OrderItemDto(Guid ItemId, string Title, int Quantity, decimal UnitPrice, decimal SubTotal);
+        public record OrderItemDto(Guid ItemId, Guid CategoryId, string Title, int Quantity, decimal UnitPrice, decimal SubTotal);
 
-        public record GetOrderByIdResponse(Guid Id, string OrderNumber, Guid CustomerId, string OrderStatus, decimal TotalPrice,
-            decimal WalletAmountUsed, decimal TotalPaid, decimal OutstandingBalance, DateTime OrderDate, ICollection<OrderItemDto> OrderItems);
+        public record DeliveryChargeDto(string Label, decimal Amount);
+
+        public record OrderStatusHistoryDto(string? PreviousStatus, string NewStatus, DateTime ChangedAt);
+
+        public record GetOrderByIdResponse(Guid Id, string OrderNumber, Guid CustomerId, string OrderStatus,
+            decimal ItemsSubtotal, decimal DeliveryFeeTotal, decimal TotalPrice, bool DeliveryFeeConfirmed,
+            decimal WalletAmountUsed, decimal TotalPaid, decimal OutstandingBalance, DateTime OrderDate, ICollection<OrderItemDto> OrderItems,
+            ICollection<DeliveryChargeDto> DeliveryCharges, ICollection<OrderStatusHistoryDto> StatusHistory);
     }
 }

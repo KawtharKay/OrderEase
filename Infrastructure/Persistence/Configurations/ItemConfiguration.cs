@@ -22,6 +22,10 @@ namespace Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .HasColumnType("decimal(18,2)");
 
+            builder.Property(x => x.CostPrice)
+                .IsRequired()
+                .HasColumnType("decimal(18,2)");
+
             builder.Property(x => x.Quantity)
                 .IsRequired()
                 .HasDefaultValue(0);

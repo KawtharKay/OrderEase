@@ -1,6 +1,6 @@
 ﻿using Application.Common.Dtos;
 using Application.Repositories;
-using Mapster;
+using Domain.Enums;
 using MediatR;
 
 namespace Application.Queries
@@ -16,7 +16,12 @@ namespace Application.Queries
                 try
                 {
                     var orders = await orderRepository.GetAllAsync();
-                    return Result<ICollection<GetAllOrdersResponse>>.Success(orders.Adapt<ICollection<GetAllOrdersResponse>>(), "Orders retrieved successfully");
+                    var response = orders.Select(o => new GetAllOrdersResponse(
+                        o.Id, o.OrderNumber, o.Customer.Name, o.OrderStatus.ToString(), o.TotalPrice, o.OrderDate,
+                        OrderStatusTransitions.GetAllowedNextStatuses(o.OrderStatus).Select(s => s.ToString()).ToList()))
+                        .ToList();
+
+                    return Result<ICollection<GetAllOrdersResponse>>.Success(response, "Orders retrieved successfully");
                 }
                 catch (Exception ex)
                 {
@@ -25,6 +30,6 @@ namespace Application.Queries
             }
         }
 
-        public record GetAllOrdersResponse(Guid Id, string OrderNumber, string CustomerName, string OrderStatus, decimal TotalPrice, DateTime OrderDate);
+        public record GetAllOrdersResponse(Guid Id, string OrderNumber, string CustomerName, string OrderStatus, decimal TotalPrice, DateTime OrderDate, ICollection<string> AllowedNextStatuses);
     }
 }

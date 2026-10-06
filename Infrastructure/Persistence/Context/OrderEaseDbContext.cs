@@ -11,10 +11,14 @@ namespace Infrastructure.Persistence.Context
         public DbSet<Category> Categories { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Delivery> Deliveries { get; set; }
+        public DbSet<DeliveryCharge> DeliveryCharges { get; set; }
+        public DbSet<DeliveryLocation> DeliveryLocations { get; set; }
         public DbSet<Item> Items { get; set; }
+        public DbSet<StockMovement> StockMovements { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<ReturnRequest> ReturnRequests { get; set; }
         public DbSet<ReturnRequestItem> ReturnRequestItems { get; set; }

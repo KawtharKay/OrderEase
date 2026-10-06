@@ -35,6 +35,10 @@ namespace Infrastructure.Persistence.Configurations
                 .IsRequired()
                 .HasColumnType("decimal(18,2)");
 
+            builder.Property(x => x.DeliveryFeeConfirmed)
+                .IsRequired()
+                .HasDefaultValue(true);
+
             builder.Property(x => x.OrderDate)
                 .IsRequired();
 

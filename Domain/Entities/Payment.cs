@@ -12,6 +12,7 @@ namespace Domain.Entities
         public decimal AmountTotal { get; set; }
         public decimal OutstandingBalance { get; set; }
         public DateTime PaymentDate { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
         public string PaystackReference { get; set; } = default!;
         public PaystackStatus Status { get; set; }
         public bool IsConfirmed { get; set; }

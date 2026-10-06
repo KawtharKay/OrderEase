@@ -26,7 +26,7 @@ namespace Application.Commands
 
         public class ApproveReturnRequestHandler(IReturnRequestRepository returnRequestRepository, IItemRepository itemRepository, IPaymentRepository paymentRepository,
             IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository, INotificationService notificationService,
-            IOrderRepository orderRepository, IUnitOfWork unitOfWork, ILogger<ApproveReturnRequestHandler> logger)
+            IOrderRepository orderRepository, ICustomerRepository customerRepository, IUnitOfWork unitOfWork, ILogger<ApproveReturnRequestHandler> logger)
             : IRequestHandler<ApproveReturnRequestCommand, Result<string>>
         {
             public async Task<Result<string>> Handle(ApproveReturnRequestCommand request, CancellationToken cancellationToken)
@@ -76,8 +76,14 @@ namespace Application.Commands
                         {
                             order.AmountOwed = Math.Max(0, order.AmountOwed - totalRefundAmount);
                             orderRepository.Update(order);
-                        }
 
+                            var customer = await customerRepository.GetAsync(returnRequest.CustomerId);
+                            if (customer != null)
+                            {
+                                customer.OutstandingBalance = Math.Max(0, customer.OutstandingBalance - totalRefundAmount);
+                                customerRepository.Update(customer);
+                            }
+                        }
                         returnRequest.DebtReductionAmount = totalRefundAmount;
 
                         notificationMessage = $"Your return request for order {returnRequest.Order.OrderNumber} was approved. " +
@@ -118,6 +124,13 @@ namespace Application.Commands
                         {
                             order.AmountOwed = Math.Max(0, order.AmountOwed - debtReductionAmount);
                             orderRepository.Update(order);
+
+                            var customer = await customerRepository.GetAsync(returnRequest.CustomerId);
+                            if (customer != null)
+                            {
+                                customer.OutstandingBalance = Math.Max(0, customer.OutstandingBalance - debtReductionAmount);
+                                customerRepository.Update(customer);
+                            }
                         }
 
                         returnRequest.WalletCreditAmount = walletCreditAmount;

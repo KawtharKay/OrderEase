@@ -38,6 +38,6 @@ namespace Application.Queries
             }
         }
 
-        public record GetDeliveryByOrderResponse(Guid Id, Guid OrderId, string DeliveryMethod);
+        public record GetDeliveryByOrderResponse(Guid Id, Guid OrderId, string DeliveryMethod, string? DeliveryAddress, Guid? DeliveryLocationId, string? DeliveryLocationName);
     }
 }

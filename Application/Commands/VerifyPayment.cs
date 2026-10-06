@@ -24,7 +24,8 @@ namespace Application.Commands
         }
 
         public class VerifyPaymentHandler(IPaymentRepository paymentRepository, IOrderRepository orderRepository, ISupplierRepository supplierRepository, IPaystackService paystackService,
-           IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository, INotificationService notificationService, IEmailService emailService, IUnitOfWork unitOfWork, ILogger<VerifyPaymentHandler> logger) : IRequestHandler<VerifyPaymentCommand, Result<string>>
+           IWalletRepository walletRepository, IWalletTransactionRepository walletTransactionRepository, INotificationService notificationService, IEmailService emailService, 
+           ICustomerRepository customerRepository, IUnitOfWork unitOfWork, ILogger<VerifyPaymentHandler> logger) : IRequestHandler<VerifyPaymentCommand, Result<string>>
         {
             public async Task<Result<string>> Handle(VerifyPaymentCommand request, CancellationToken cancellationToken)
             {
@@ -88,10 +89,17 @@ namespace Application.Commands
                         payment.OutstandingBalance = payment.AmountTotal - verification.AmountPaid;
                     }
 
-                    payment.Status = PaystackStatus.Successful;
-                    payment.IsConfirmed = true;
-                    payment.DateConfirmed = DateTime.UtcNow;
-                    paymentRepository.Update(payment);
+                        payment.Status = PaystackStatus.Successful;
+                        payment.IsConfirmed = true;
+                        payment.DateConfirmed = DateTime.UtcNow;
+                        paymentRepository.Update(payment);
+
+                    var customer = await customerRepository.GetAsync(payment.CustomerId);
+                    if (customer != null)
+                    {
+                        customer.OutstandingBalance = Math.Max(0, customer.OutstandingBalance - payment.AmountPaid);
+                        customerRepository.Update(customer);
+                    }
                     await unitOfWork.SaveAsync();
 
                     var supplier = await supplierRepository.GetFirstAsync();

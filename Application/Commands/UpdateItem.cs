@@ -8,7 +8,7 @@ namespace Application.Commands
 {
     public class UpdateItem
     {
-        public record UpdateItemCommand(Guid Id, string Title, string ImageUrl, decimal Price, int Quantity) : IRequest<Result<UpdateItemResponse>>;
+        public record UpdateItemCommand(Guid Id, string Title, string ImageUrl, decimal Price, decimal CostPrice) : IRequest<Result<UpdateItemResponse>>;
 
         public class UpdateItemValidator : AbstractValidator<UpdateItemCommand>
         {
@@ -34,9 +34,9 @@ namespace Application.Commands
                     .GreaterThan(0)
                     .WithMessage("Price must be greater than zero");
 
-                RuleFor(x => x.Quantity)
+                RuleFor(x => x.CostPrice)
                     .GreaterThanOrEqualTo(0)
-                    .WithMessage("Quantity cannot be negative");
+                    .WithMessage("Cost price cannot be negative");
             }
         }
 
@@ -52,8 +52,7 @@ namespace Application.Commands
                     item.Title = request.Title;
                     item.ImageUrl = request.ImageUrl;
                     item.Price = request.Price;
-                    item.Quantity = request.Quantity;
-                    item.IsAvailable = request.Quantity > 0;
+                    item.CostPrice = request.CostPrice;
 
                     itemRepository.Update(item);
                     await unitOfWork.SaveAsync();
@@ -67,6 +66,6 @@ namespace Application.Commands
             }
         }
 
-        public record UpdateItemResponse(Guid Id, string Title, string ImageUrl, decimal Price, int Quantity, bool IsAvailable);
+        public record UpdateItemResponse(Guid Id, string Title, string ImageUrl, decimal Price, decimal CostPrice, int Quantity, bool IsAvailable);
     }
 }

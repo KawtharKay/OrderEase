@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Common.Dtos;
+using Domain.Entities;
 
 namespace Application.Repositories
 {
@@ -9,6 +10,8 @@ namespace Application.Repositories
         Task<Customer?> GetByUserIdAsync(Guid userId);
         Task<Customer?> GetAsync(string email);
         Task<ICollection<Customer>> GetAllAsync();
+        Task<IEnumerable<Customer>> GetAllWithBalancesAsync();
+        Task<IEnumerable<CustomerBalanceSummary>> GetAllWithBalanceSummaryAsync();
         void Update(Customer customer);
     }
 }
